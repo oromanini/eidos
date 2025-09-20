@@ -17,7 +17,7 @@ class QuizService
         $this->questionRepository = $questionRepository;
         $this->topicRepository = $topicRepository;
     }
-
+    
     public function importQuestionsFromCsv(string $filePath): void
     {
         if (!Storage::exists($filePath)) {
@@ -32,6 +32,10 @@ class QuizService
         $records = $csv->getRecords();
 
         foreach ($records as $record) {
+            if (empty(trim($record['tema'])) || empty(trim($record['pergunta']))) {
+                continue;
+            }
+
             $topic = $this->topicRepository->findByNameOrCreate($record['tema']);
 
             $data = [
@@ -50,5 +54,4 @@ class QuizService
         }
 
         Storage::delete($filePath);
-    }
-}
+    }}
