@@ -10,4 +10,12 @@ class TopicRepository
     {
         return Topic::create($data);
     }
+
+    public function findByNameOrCreate(string $name): Topic
+    {
+        return Topic::firstOrCreate(
+            ['name' => trim($name)],
+            ['description' => '']
+        );
+    }
 }
