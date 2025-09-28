@@ -7,7 +7,7 @@
                     <!-- Logo -->
                     <div class="shrink-0 flex items-center">
                         <a href="{{ route('home') }}">
-                            <x-application-mark class="block h-9 w-auto" />
+                            <img src="{{ asset('images/eidos-title.png') }}" alt="Logo Eidos" class="h-20 w-auto">
                         </a>
                     </div>
 
@@ -17,8 +17,8 @@
                             {{ __('Home') }}
                         </x-nav-link>
 
-                        <x-nav-link href="{{ route('docs') }}" :active="request()->routeIs('docs')">
-                            {{ __('Documentation') }}
+                        <x-nav-link href="{{ route('eidos.import.form') }}" :active="request()->routeIs('eidos.import.form')">
+                            {{ __('Importar') }}
                         </x-nav-link>
                     </div>
                 </div>
@@ -42,9 +42,9 @@
                     {{ __('Home') }}
                 </x-responsive-nav-link>
 
-                <x-responsive-nav-link href="{{ route('docs') }}" :active="request()->routeIs('docs')">
-                    {{ __('Documentation') }}
-                </x-responsive-nav-link>
+{{--                <x-responsive-nav-link href="{{ route('docs') }}" :active="request()->routeIs('docs')">--}}
+{{--                    {{ __('Documentation') }}--}}
+{{--                </x-responsive-nav-link>--}}
             </div>
         </div>
     </nav>
