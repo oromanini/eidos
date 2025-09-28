@@ -11,6 +11,18 @@ services:
     depends_on:
       - db
 
+  # --- NOVO SERVIÇO PARA O VITE ---
+  vite:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: eidos-vite
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "5173:5173" # Expõe a porta do Vite para o seu computador
+    command: npm run dev # Sobrescreve o comando padrão do Dockerfile
+
   db:
     image: mysql:8.0
     container_name: eidos-db
@@ -19,10 +31,10 @@ services:
       MYSQL_DATABASE: '${DB_DATABASE}'
       MYSQL_USER: '${DB_USERNAME}'
       MYSQL_PASSWORD: '${DB_PASSWORD}'
-      MYSQL_DATABASE_TEST: '${DB_DATABASE_TEST}'
     ports:
       - "3307:3306"
     volumes:
       - db-data:/var/lib/mysql
+
 volumes:
   db-data:

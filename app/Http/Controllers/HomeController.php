@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\TopicRepository;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(TopicRepository $topicRepository): View
     {
-        return view('home');
+        $topics = $topicRepository->all();
+
+        return view('home', [
+            'topics' => $topics,
+        ]);
     }
 }
