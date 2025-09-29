@@ -6,12 +6,12 @@ services:
     container_name: eidos-app
     volumes:
       - .:/var/www/html
-    # Porta do host:porta do container. Você moveu para 8100.
+      - /var/www/html/node_modules
+      - /var/www/html/vendor
     ports:
       - "8100:80"
     depends_on:
       - db
-    # MELHORIA: Garante que o Apache/PHP execute comandos no diretório correto.
     working_dir: /var/www/html
 
   vite:
@@ -21,25 +21,19 @@ services:
     container_name: eidos-vite
     volumes:
       - .:/var/www/html
+      - /var/www/html/node_modules
+      - /var/www/html/vendor
     ports:
       - "5173:5173"
-    # CORREÇÃO CRÍTICA: Define o diretório de trabalho. Essencial para que 'npm run dev' encontre o binário 'vite'.
-    working_dir: /var/www/html 
-    command: npm run dev 
+    working_dir: /var/www/html
+    command: ./node_modules/.bin/vite
 
   db:
     image: mysql:8.0
     container_name: eidos-db
     environment:
-      # Mantém a senha para o usuário root (necessário para o entrypoint do MySQL)
       MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
       MYSQL_DATABASE: '${DB_DATABASE}'
-      # CORREÇÃO CRÍTICA: Remova MYSQL_USER/MYSQL_PASSWORD se DB_USERNAME for 'root'
-      # Se você precisa de um usuário não-root, garanta que DB_USERNAME NÃO seja 'root' no seu .env
-      # Se o seu DB_USERNAME é 'laravel', você pode descomentar estas linhas:
-      # MYSQL_USER: '${DB_USERNAME}'
-      # MYSQL_PASSWORD: '${DB_PASSWORD}'
-      # Vou remover por padrão, assumindo que DB_USERNAME é 'root' ou você usa um único usuário no Laravel.
     ports:
       - "3307:3306"
     volumes:
