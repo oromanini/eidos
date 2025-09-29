@@ -1,6 +1,3 @@
-Ótimo! Aqui está o arquivo `descritivo.md` completo, com todas as tags de Markdown para que você possa copiar e colar diretamente.
-
----
 
 # Eidos: Seu Sistema de Aprendizado Personalizado
 

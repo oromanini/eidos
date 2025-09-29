@@ -3,7 +3,6 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-// use ProtoneMedia\Splade\Http\SpladeMiddleware; // 1. LINHA REMOVIDA
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,10 +11,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->group('splade', [\ProtoneMedia\Splade\Http\SpladeMiddleware::class]);
-        $middleware->web();
+        $middleware->alias([
+            'is_admin' => \App\Http\Middleware\IsAdmin::class,
+        ]);
+
+        $middleware->group('splade', [
+            \ProtoneMedia\Splade\Http\SpladeMiddleware::class
+        ]);
+
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\CheckIfApproved::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->renderable(\ProtoneMedia\Splade\SpladeCore::exceptionHandler($exceptions->handler));
-        //
     })->create();
+

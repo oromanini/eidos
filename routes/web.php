@@ -1,47 +1,45 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\TopicController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+Route::get('/', function () {
+    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
+});
 
-Route::middleware(['splade'])->group(function () {
-    // --- NOSSAS ROTAS DO EIDOS ---
-    // Rotas públicas
-    Route::get('/', HomeController::class)->name('home');
+Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login')->middleware('guest');
+Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->name('social.redirect');
+Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])->name('social.callback');
+
+Route::middleware(['auth', 'splade'])->group(function () {
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    // Alteração Principal: Renomeando 'home' para 'dashboard'
+    Route::get('/dashboard', HomeController::class)->name('dashboard');
+
     Route::get('/import', [QuizController::class, 'showImportForm'])->name('eidos.import.form');
     Route::post('/import', [QuizController::class, 'import'])->name('eidos.import');
     Route::resource('topics', TopicController::class)->only(['index', 'show']);
-
-    // Rotas do Quiz (sem autenticação por enquanto)
     Route::get('/topics/{topic}/quiz/start', [QuizController::class, 'start'])->name('quiz.start');
     Route::get('/topics/{topic}/quiz/question/{questionNumber}', [QuizController::class, 'showQuestion'])->name('quiz.question');
     Route::post('/quiz/question/{question}/answer', [QuizController::class, 'answer'])->name('quiz.answer');
-// Em: routes/web.php
     Route::get('/topics/{topic}/quiz/finish', [QuizController::class, 'finish'])->name('quiz.finish');
     Route::get('/quiz/results/{quizHistory}', [QuizController::class, 'results'])->name('quiz.results');
 
-    // --- ROTAS DO SPLADE ---
-    // Registra rotas para suportar os componentes interativos...
+    Route::middleware('is_admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/users', [AdminController::class, 'index'])->name('users.index');
+        Route::post('/users/{user}/approve', [AdminController::class, 'approve'])->name('users.approve');
+    });
+
     Route::spladeWithVueBridge();
-
-    // Registra rotas para suportar a confirmação de senha nos componentes Form e Link...
     Route::spladePasswordConfirmation();
-
-    // Registra rotas para suportar Ações em Massa e Exportações de Tabelas...
     Route::spladeTable();
-
-    // Registra rotas para suportar Uploads de Arquivos assíncronos com Filepond...
     Route::spladeUploads();
 });
+
