@@ -6,9 +6,9 @@
                 <div class="flex">
                     <!-- Logo -->
                     <div class="shrink-0 flex items-center">
-                        <a href="{{ route('dashboard') }}">
-                            <img src="{{ asset('images/eidos-title.png') }}" alt="Logo Eidos" class="h-20 w-auto">
-                        </a>
+                        <Link href="{{ route('dashboard') }}">
+                        <img src="{{ asset('images/eidos-title.png') }}" alt="Logo Eidos" class="h-20 w-auto">
+                        </Link>
                     </div>
 
                     <!-- Navigation Links -->

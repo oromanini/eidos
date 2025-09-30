@@ -3,8 +3,7 @@
         {{-- Hero Section --}}
         <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
             <div class="flex justify-center">
-                <img src="{{ asset('images/eidos-dark-logo.png') }}" alt="Logo Eidos" class="w-1/6 mx-auto">
-            </div>
+                <img src="{{ asset('images/eidos-dark-logo.png') }}" alt="Logo Eidos" class="w-1/6 mx-auto" style="width: 16.66%;">            </div>
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
                 <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
                     Bem-vindo ao <span class="text-indigo-300">Eidos</span>
