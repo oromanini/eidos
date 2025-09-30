@@ -19,7 +19,7 @@
                 </x-splade-form>
 
                 <div class="text-center mt-8">
-                    <Link href="{{ route('home') }}" class="text-sm text-gray-600 hover:text-gray-900 hover:underline">
+                    <Link href="{{ route('dashboard') }}" class="text-sm text-gray-600 hover:text-gray-900 hover:underline">
                     &larr; Voltar para a Home
                     </Link>
                 </div>

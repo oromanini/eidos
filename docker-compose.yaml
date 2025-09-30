@@ -9,7 +9,7 @@ services:
       - /var/www/html/node_modules
       - /var/www/html/vendor
     ports:
-      - "8100:80"
+      - "8000:80"
     depends_on:
       - db
     working_dir: /var/www/html
