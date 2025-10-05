@@ -4,7 +4,7 @@
 
             {{-- Navegação "Breadcrumb" --}}
             <div class="mb-6">
-                <Link href="{{ route('home') }}" class="text-blue-600 hover:text-blue-800 transition-colors">
+                <Link href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-800 transition-colors">
                 Home
                 </Link>
                 <span class="text-gray-400 mx-2">/</span>

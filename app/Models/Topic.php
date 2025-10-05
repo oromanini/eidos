@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Topic extends Model
 {
@@ -12,13 +14,16 @@ class Topic extends Model
     protected $fillable = [
         'name',
         'description',
+        'user_id',
     ];
 
-    /**
-     * Get the questions for the topic.
-     */
-    public function questions()
+    public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

@@ -43,16 +43,16 @@ class QuizController extends Controller
 
         $filePath = $request->file('csv_file')->store('imports');
 
-        $this->quizService->importQuestionsFromCsv($filePath);
+        $this->quizService->importQuestionsFromCsv($filePath, auth()->id());
 
         Splade::toast('O tópico foi importado com sucesso!')->autoDismiss(5);
 
-        return redirect()->route('home');
+        return redirect()->route('dashboard');
     }
 
     public function start(Topic $topic): RedirectResponse
     {
-        $questions = $topic->questions()->inRandomOrder()->limit(10)->pluck('id');
+        $questions = $topic->questions()->inRandomOrder()->pluck('id');
 
         if ($questions->isEmpty()) {
             Splade::toast('Este tópico ainda não possui perguntas.')->warning();
@@ -64,7 +64,7 @@ class QuizController extends Controller
             'question_ids' => $questions->toArray(),
             'current_question_index' => 0,
             'score' => 0,
-            'start_time' => time(), // << ADICIONA O TEMPO DE INÍCIO
+            'start_time' => time(),
 
         ]);
 
@@ -104,7 +104,7 @@ class QuizController extends Controller
         }
 
         $this->userAnswerService->saveUserAnswer(
-            userId: 1,
+            userId: auth()->id(),
             questionId: $question->id,
             userAnswer: $request->answer,
             isCorrect: $isCorrect
@@ -133,7 +133,7 @@ class QuizController extends Controller
         $quizState = Session::get('quiz');
 
         if (!$quizState || $quizState['topic_id'] !== $topic->id) {
-            return redirect()->route('home');
+            return redirect()->route('dashboard');
         }
 
         $duration = time() - $quizState['start_time'];
@@ -142,7 +142,7 @@ class QuizController extends Controller
         $percentage = $totalQuestions > 0 ? ($score / $totalQuestions) * 100 : 0;
 
         $history = $this->quizHistoryService->logQuizCompletion([
-            'user_id' => 1,
+            'user_id' => auth()->id(),
             'topic_id' => $topic->id,
             'score' => $score,
             'total_questions' => $totalQuestions,

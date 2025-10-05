@@ -39,7 +39,7 @@
                 <Link href="{{ route('quiz.start', ['topic' => $history->topic_id]) }}" class="w-full sm:w-auto text-center bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-all">
                 Tentar Novamente
                 </Link>
-                <Link href="{{ route('home') }}" class="w-full sm:w-auto text-center bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-all">
+                <Link href="{{ route('dashboard') }}" class="w-full sm:w-auto text-center bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-all">
                 Voltar para a Home
                 </Link>
             </div>
