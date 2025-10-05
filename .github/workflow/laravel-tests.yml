@@ -11,7 +11,6 @@ on:
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
-
     steps:
       # Passo 1: Clona o repositório
       - name: Checkout repository
