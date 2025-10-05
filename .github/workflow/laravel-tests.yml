@@ -1,72 +1,84 @@
-# Nome do workflows, mais descritivo
+# Nome do workflow
 name: Laravel CI - Run Tests and Code Style Checks
 
-# Gatilhos para a branch 'master'
+# Gatilhos para a branch 'main' (mais comum que 'master')
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
+
     steps:
       # Passo 1: Clona o repositório
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- MELHORIAS DE CACHE ---
-      # Cache para as dependências do Composer para acelerar o processo
+      # Passo 2: Configura o cache para acelerar as execuções futuras
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
           path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-
 
-          key: ''
       - name: Cache NPM dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.npm
+          path: node_modules
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
-      # Passo 2: Cria o .env para que o Docker Compose possa configurar os serviços
-      - name: Create .env file for Docker Compose
+      # Passo 3: Cria o arquivo .env para o Docker a partir da configuração de teste
+      - name: Create .env file for testing environment
         run: cp .env.testing .env
-      # Passo 3: Sobe os containers Docker
+
+      # Passo 4: Sobe os containers Docker em background
       - name: Start Docker services
         run: docker compose up -d
 
-      # --- MELHORIA DE ROBUSTEZ ---
-      # Adiciona uma pequena espera para garantir que o MySQL esteja pronto para aceitar conexões
+      # Passo 5: Espera o banco de dados ficar pronto de forma robusta
       - name: Wait for Database Connection
-        run: sleep 10
+        run: |
+          echo "Waiting for database to be ready..."
+          until docker compose exec -T db mysqladmin ping -h "127.0.0.1" --silent; do
+            echo "Database is unavailable - sleeping"
+            sleep 1
+          done
+          echo "Database is ready!"
 
-      # Passo 4: Instala as dependências do Composer
+      # Passo 6: Instala as dependências do Composer e NPM
       - name: Install Composer Dependencies
         run: docker compose exec -T app composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      # Passo 5: Prepara o ambiente Laravel dentro do container
+      - name: Install NPM Dependencies
+        run: docker compose exec -T app npm install
+
+      # Passo 7: Compila os assets de frontend
+      - name: Build Frontend Assets
+        run: docker compose exec -T app npm run build
+
+      # Passo 8: Prepara o ambiente Laravel (chave e banco de dados de teste)
       - name: Prepare Laravel Application
         run: |
-          docker compose exec -T app cp .env.example .env
           docker compose exec -T app php artisan key:generate
+          docker compose exec -T app php artisan migrate --force
           docker compose exec -T app php artisan config:clear
 
-      # --- MELHORIA DE QUALIDADE DE CÓDIGO ---
-      # Passo 6: Verifica o estilo do código com o Laravel Pint
+      # Passo 9: Verifica o estilo do código com o Laravel Pint
       - name: Run Code Style Check (Pint)
         run: docker compose exec -T app ./vendor/bin/pint --test
 
-      # Passo 7: Roda a suíte de testes do PHPUnit
+      # Passo 10: Roda a suíte de testes do PHPUnit
       - name: Run PHPUnit Tests
         run: docker compose exec -T app php artisan test
 
-      # Passo 8: Para os containers ao final da execução
+      # Passo 11: Para os containers ao final da execução
       - name: Stop Docker services
         if: always() # Garante que este passo sempre rode, mesmo se os testes falharem
         run: docker compose down
