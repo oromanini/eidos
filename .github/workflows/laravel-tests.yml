@@ -1,4 +1,4 @@
-# Nome do workflow, mais descritivo
+# Nome do workflows, mais descritivo
 name: Laravel CI - Run Tests and Code Style Checks
 
 # Gatilhos para a branch 'master'
