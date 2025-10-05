@@ -22,11 +22,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-
 
-      # Cache para as dependências do NPM
+          key: ''
       - name: Cache NPM dependencies
         uses: actions/cache@v4
         with:
@@ -37,8 +36,7 @@ jobs:
 
       # Passo 2: Cria o .env para que o Docker Compose possa configurar os serviços
       - name: Create .env file for Docker Compose
-        run: cp .env.example .env
-
+        run: cp .env.testing .env
       # Passo 3: Sobe os containers Docker
       - name: Start Docker services
         run: docker compose up -d
