@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Topic; // Importe o model Topic
 use App\Repositories\QuestionRepository;
 use App\Repositories\TopicRepository;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +19,7 @@ class QuizService
         $this->topicRepository = $topicRepository;
     }
 
-    public function importQuestionsFromCsv(string $filePath): void
+    public function importQuestionsFromCsv(string $filePath, int $userId): void
     {
         if (!Storage::exists($filePath)) {
             return;
@@ -31,16 +32,13 @@ class QuizService
         $topicDescription = '';
         $csvDataLines = [];
 
-        // Lógica de extração de metadados melhorada
         foreach ($lines as $line) {
             if (str_starts_with($line, '# TEMA:')) {
-                // Separa a linha no primeiro ':' e pega a segunda parte
                 $parts = explode(':', $line, 2);
                 if (isset($parts[1])) {
                     $topicName = trim($parts[1]);
                 }
             } elseif (str_starts_with($line, '# DESCRIÇÃO:')) {
-                // Faz o mesmo para a descrição
                 $parts = explode(':', $line, 2);
                 if (isset($parts[1])) {
                     $topicDescription = trim($parts[1]);
@@ -50,8 +48,10 @@ class QuizService
             }
         }
 
-        // O resto do método permanece o mesmo...
-        $topic = $this->topicRepository->createOrUpdate($topicName, $topicDescription);
+        $topic = Topic::firstOrCreate(
+            ['name' => $topicName, 'user_id' => $userId],
+            ['description' => $topicDescription]
+        );
 
         if (empty($csvDataLines)) {
             Storage::delete($filePath);
@@ -84,4 +84,5 @@ class QuizService
         }
 
         Storage::delete($filePath);
-    }}
+    }
+}

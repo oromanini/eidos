@@ -43,7 +43,7 @@ class SocialLoginController extends Controller
 
             Auth::login($user);
 
-            return redirect()->route('home');
+            return redirect()->route('dashboard');
 
         } catch (\Exception $e) {
             Log::error('Socialite Callback Error: ' . $e->getMessage());
