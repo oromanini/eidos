@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Topic; // Importe o model Topic
+use App\Models\Topic;
 use App\Repositories\QuestionRepository;
 use App\Repositories\TopicRepository;
 use Illuminate\Support\Facades\Storage;
@@ -49,12 +49,13 @@ class QuizService
             }
         }
 
-        $topic = Topic::firstOrCreate(
-            ['name' => $topicName, 'user_id' => $userId],
-            ['description' => $topicDescription]
-        );
-
+        // Se não houver linhas de dados, podemos criar o tópico vazio ou simplesmente retornar.
+        // Neste caso, vamos criar o tópico e depois verificar as questões.
         if (empty($csvDataLines)) {
+            Topic::firstOrCreate(
+                ['name' => $topicName, 'user_id' => $userId],
+                ['description' => $topicDescription]
+            );
             Storage::delete($filePath);
 
             return;
@@ -65,24 +66,45 @@ class QuizService
         $csv->setHeaderOffset(0);
         $records = $csv->getRecords();
 
+        $questionsToCreate = [];
         foreach ($records as $record) {
-            if (empty(trim($record['pergunta']))) {
+            // ---> INÍCIO DA VALIDAÇÃO MELHORADA <---
+            $questionText = trim($record['pergunta']);
+            $altA = trim($record['alternativa_a']);
+            $altB = trim($record['alternativa_b']);
+            $altC = trim($record['alternativa_c']);
+            $altD = trim($record['alternativa_d']);
+            $correctAnswer = trim($record['resposta_correta']);
+
+            // Pula a linha se qualquer campo essencial estiver faltando.
+            if (empty($questionText) || empty($altA) || empty($altB) || empty($altC) || empty($altD) || empty($correctAnswer)) {
                 continue;
             }
+            // ---> FIM DA VALIDAÇÃO MELHORADA <---
 
-            $data = [
-                'topic_id' => $topic->id,
-                'question_text' => trim($record['pergunta']),
-                'correct_answer' => trim($record['resposta_correta']),
+            $questionsToCreate[] = [
+                'question_text' => $questionText,
+                'correct_answer' => $correctAnswer,
                 'options' => [
-                    'a' => trim($record['alternativa_a']),
-                    'b' => trim($record['alternativa_b']),
-                    'c' => trim($record['alternativa_c']),
-                    'd' => trim($record['alternativa_d']),
+                    'a' => $altA,
+                    'b' => $altB,
+                    'c' => $altC,
+                    'd' => $altD,
                 ],
             ];
+        }
 
-            $this->questionRepository->create($data);
+        // Apenas cria o tópico se houver questões válidas para ele.
+        if (! empty($questionsToCreate)) {
+            $topic = Topic::firstOrCreate(
+                ['name' => $topicName, 'user_id' => $userId],
+                ['description' => $topicDescription]
+            );
+
+            foreach ($questionsToCreate as $questionData) {
+                $questionData['topic_id'] = $topic->id;
+                $this->questionRepository->create($questionData);
+            }
         }
 
         Storage::delete($filePath);

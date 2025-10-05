@@ -16,18 +16,25 @@ class UserAnswerServiceTest extends TestCase
 
     protected UserAnswerService $userAnswerService;
 
+    protected User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->userAnswerService = new UserAnswerService(new UserAnswerRepository);
+        $this->user = User::factory()->create();
     }
 
     public function test_it_can_save_a_user_answer(): void
     {
-        // Crie os registros necessários para as foreign keys
         $user = User::factory()->create();
-        $topic = Topic::create(['name' => 'Teste', 'description' => 'Tema para testes']);
+
+        $topic = Topic::create([
+            'name' => 'Teste',
+            'description' => 'Tema para testes',
+            'user_id' => $this->user->id,
+        ]);
+
         $question = Question::create([
             'topic_id' => $topic->id,
             'question_text' => 'Qual o maior planeta?',
@@ -37,7 +44,6 @@ class UserAnswerServiceTest extends TestCase
 
         $this->userAnswerService->saveUserAnswer($user->id, $question->id, 'a', true);
 
-        // Verifique se o registro foi criado no banco de dados
         $this->assertDatabaseHas('user_answers', [
             'user_id' => $user->id,
             'question_id' => $question->id,

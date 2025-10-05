@@ -1,12 +1,12 @@
 # Nome do workflow
 name: Laravel CI - Run Tests and Code Style Checks
 
-# Gatilhos para a branch 'main' (mais comum que 'master')
+# Gatilhos para a branch 'master'
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   laravel-tests:
@@ -17,12 +17,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Passo 2: Configura o cache para acelerar as execuções futuras
+      # Passo 2: Configura o cache para Composer e NPM
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
           path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          # CORREÇÃO: Usando caminho direto para o arquivo
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-
 
@@ -30,7 +31,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          # CORREÇÃO: Restaurado e usando caminho direto para o arquivo
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 

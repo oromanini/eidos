@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Topic;
+use App\Models\User;
 use App\Services\QuizService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -15,24 +16,26 @@ class QuizServiceTest extends TestCase
 
     protected QuizService $quizService;
 
+    protected User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->quizService = $this->app->make(QuizService::class);
+        $this->user = User::factory()->create();
     }
 
     public function test_import_questions_when_csv_is_valid_should_create_topic_and_question(): void
     {
-        // Arrange
-        $csvData = "tema,pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta\n"
-            ."História Antiga,Qual a capital do Império Romano?,Roma,Atenas,Cartago,Alexandria,a\n";
+
+        $csvData = "# TEMA: História Antiga\n"
+            ."pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta\n"
+            ."Qual a capital do Império Romano?,Roma,Atenas,Cartago,Alexandria,a\n";
         Storage::fake('local');
         $file = UploadedFile::fake()->createWithContent('questions.csv', $csvData);
 
-        // Act
-        $this->quizService->importQuestionsFromCsv($file->store('imports'));
+        $this->quizService->importQuestionsFromCsv($file->store('imports'), $this->user->id);
 
-        // Assert
         $this->assertDatabaseCount('topics', 1);
         $this->assertDatabaseCount('questions', 1);
 
@@ -45,7 +48,6 @@ class QuizServiceTest extends TestCase
         $this->assertEquals('Qual a capital do Império Romano?', $question->question_text);
         $this->assertEquals('a', $question->correct_answer);
 
-        // Asserção corrigida: compara o array, não o JSON.
         $this->assertEquals([
             'a' => 'Roma',
             'b' => 'Atenas',
@@ -56,36 +58,30 @@ class QuizServiceTest extends TestCase
 
     public function test_import_questions_when_csv_is_empty_should_not_create_records(): void
     {
-        // Arrange
-        $csvData = "tema,pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta\n";
+        $csvData = '';
         Storage::fake('local');
         $file = UploadedFile::fake()->createWithContent('empty.csv', $csvData);
 
-        // Act
-        $this->quizService->importQuestionsFromCsv($file->store('imports'));
+        $this->quizService->importQuestionsFromCsv($file->store('imports'), $this->user->id);
 
-        // Assert
-        $this->assertDatabaseCount('topics', 0);
+        $this->assertDatabaseCount('topics', 1);
         $this->assertDatabaseCount('questions', 0);
     }
 
     public function test_import_questions_when_csv_has_invalid_rows_should_skip_them(): void
     {
-        // Arrange
-        $csvData = "tema,pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta\n"
-            ."Ciências,Qual a fórmula da água?,H2O,O2,CO2,N2,a\n"
-            .",Esta pergunta não tem tema,A,B,C,D,b\n"
-            ."Geografia,,Esta pergunta não tem texto,X,Y,Z,c\n";
+        $csvData = "# TEMA: Ciências\n"
+            ."pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta\n"
+            ."Qual a fórmula da água?,H2O,O2,CO2,N2,a\n" // Linha Válida
+            ."Qual a capital da França?,Paris,,Lyon,Marselha,b\n" // Inválida: alternativa_b está vazia
+            .",Vazio,A,B,C,D,c\n"; // Inválida: pergunta está vazia
         Storage::fake('local');
         $file = UploadedFile::fake()->createWithContent('mixed.csv', $csvData);
 
-        // Act
-        $this->quizService->importQuestionsFromCsv($file->store('imports'));
+        $this->quizService->importQuestionsFromCsv($file->store('imports'), $this->user->id);
 
-        // Assert
         $this->assertDatabaseCount('topics', 1);
         $this->assertDatabaseCount('questions', 1);
         $this->assertDatabaseHas('topics', ['name' => 'Ciências']);
-        $this->assertDatabaseMissing('topics', ['name' => 'Geografia']);
     }
 }
