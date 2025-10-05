@@ -42,4 +42,3 @@ Route::middleware(['auth', 'splade'])->group(function () {
     Route::spladeTable();
     Route::spladeUploads();
 });
-

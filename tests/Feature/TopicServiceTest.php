@@ -11,17 +11,14 @@ class TopicServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * @var TopicService
-     */
     protected TopicService $topicService;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
         // O repositório agora interage com o banco de dados
-        $this->topicService = new TopicService(new TopicRepository());
+        $this->topicService = new TopicService(new TopicRepository);
     }
 
     public function test_it_can_create_a_topic(): void

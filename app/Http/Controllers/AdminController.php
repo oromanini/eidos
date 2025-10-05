@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use ProtoneMedia\Splade\Facades\Toast;
-use ProtoneMedia\Splade\SpladeTable;
-use Illuminate\Contracts\View\View; // Importe a classe View
+use ProtoneMedia\Splade\SpladeTable; // Importe a classe View
 
 class AdminController extends Controller
 {
@@ -22,7 +22,7 @@ class AdminController extends Controller
                 ->column('email', 'Email', sortable: true)
                 ->column('created_at', 'Data de Registro', sortable: true)
                 ->column('status', 'Status')
-                ->column('actions', 'Ações', canBeHidden: false)
+                ->column('actions', 'Ações', canBeHidden: false),
         ]);
     }
 

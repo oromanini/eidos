@@ -14,16 +14,13 @@ class UserAnswerServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * @var UserAnswerService
-     */
     protected UserAnswerService $userAnswerService;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
-        $this->userAnswerService = new UserAnswerService(new UserAnswerRepository());
+        $this->userAnswerService = new UserAnswerService(new UserAnswerRepository);
     }
 
     public function test_it_can_save_a_user_answer(): void

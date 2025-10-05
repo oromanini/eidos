@@ -16,12 +16,6 @@ class UserAnswerService
 
     /**
      * Salva a resposta de um usuário.
-     *
-     * @param int $userId
-     * @param int $questionId
-     * @param string $userAnswer
-     * @param bool $isCorrect
-     * @return UserAnswer
      */
     public function saveUserAnswer(int $userId, int $questionId, string $userAnswer, bool $isCorrect): UserAnswer
     {

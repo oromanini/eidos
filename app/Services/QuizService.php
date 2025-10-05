@@ -11,6 +11,7 @@ use League\Csv\Reader;
 class QuizService
 {
     protected QuestionRepository $questionRepository;
+
     protected TopicRepository $topicRepository;
 
     public function __construct(QuestionRepository $questionRepository, TopicRepository $topicRepository)
@@ -21,14 +22,14 @@ class QuizService
 
     public function importQuestionsFromCsv(string $filePath, int $userId): void
     {
-        if (!Storage::exists($filePath)) {
+        if (! Storage::exists($filePath)) {
             return;
         }
 
         $fileContent = Storage::get($filePath);
         $lines = explode(PHP_EOL, $fileContent);
 
-        $topicName = 'Tópico importado em ' . now()->format('d/m/Y');
+        $topicName = 'Tópico importado em '.now()->format('d/m/Y');
         $topicDescription = '';
         $csvDataLines = [];
 
@@ -43,7 +44,7 @@ class QuizService
                 if (isset($parts[1])) {
                     $topicDescription = trim($parts[1]);
                 }
-            } elseif (!empty(trim($line))) {
+            } elseif (! empty(trim($line))) {
                 $csvDataLines[] = $line;
             }
         }
@@ -55,6 +56,7 @@ class QuizService
 
         if (empty($csvDataLines)) {
             Storage::delete($filePath);
+
             return;
         }
 

@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('splade', [
-            \ProtoneMedia\Splade\Http\SpladeMiddleware::class
+            \ProtoneMedia\Splade\Http\SpladeMiddleware::class,
         ]);
 
         $middleware->appendToGroup('web', [
@@ -26,4 +26,3 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->renderable(\ProtoneMedia\Splade\SpladeCore::exceptionHandler($exceptions->handler));
     })->create();
-

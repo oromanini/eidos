@@ -15,17 +15,17 @@ class QuizServiceTest extends TestCase
 
     protected QuizService $quizService;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->quizService = $this->app->make(QuizService::class);
     }
-    
-    public function testImportQuestionsWhenCsvIsValidShouldCreateTopicAndQuestion(): void
+
+    public function test_import_questions_when_csv_is_valid_should_create_topic_and_question(): void
     {
         // Arrange
         $csvData = "tema,pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta\n"
-            . "História Antiga,Qual a capital do Império Romano?,Roma,Atenas,Cartago,Alexandria,a\n";
+            ."História Antiga,Qual a capital do Império Romano?,Roma,Atenas,Cartago,Alexandria,a\n";
         Storage::fake('local');
         $file = UploadedFile::fake()->createWithContent('questions.csv', $csvData);
 
@@ -53,8 +53,8 @@ class QuizServiceTest extends TestCase
             'd' => 'Alexandria',
         ], $question->options);
     }
-    
-    public function testImportQuestionsWhenCsvIsEmptyShouldNotCreateRecords(): void
+
+    public function test_import_questions_when_csv_is_empty_should_not_create_records(): void
     {
         // Arrange
         $csvData = "tema,pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta\n";
@@ -68,14 +68,14 @@ class QuizServiceTest extends TestCase
         $this->assertDatabaseCount('topics', 0);
         $this->assertDatabaseCount('questions', 0);
     }
-    
-    public function testImportQuestionsWhenCsvHasInvalidRowsShouldSkipThem(): void
+
+    public function test_import_questions_when_csv_has_invalid_rows_should_skip_them(): void
     {
         // Arrange
         $csvData = "tema,pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta\n"
-            . "Ciências,Qual a fórmula da água?,H2O,O2,CO2,N2,a\n"
-            . ",Esta pergunta não tem tema,A,B,C,D,b\n"
-            . "Geografia,,Esta pergunta não tem texto,X,Y,Z,c\n";
+            ."Ciências,Qual a fórmula da água?,H2O,O2,CO2,N2,a\n"
+            .",Esta pergunta não tem tema,A,B,C,D,b\n"
+            ."Geografia,,Esta pergunta não tem texto,X,Y,Z,c\n";
         Storage::fake('local');
         $file = UploadedFile::fake()->createWithContent('mixed.csv', $csvData);
 

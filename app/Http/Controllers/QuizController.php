@@ -17,14 +17,16 @@ use ProtoneMedia\Splade\Facades\Splade;
 class QuizController extends Controller
 {
     protected QuizService $quizService;
+
     protected UserAnswerService $userAnswerService;
+
     private QuizHistoryService $quizHistoryService;
 
     public function __construct(
         QuizService $quizService,
         UserAnswerService $userAnswerService,
         QuizHistoryService $quizHistoryService
-    ){
+    ) {
         $this->quizService = $quizService;
         $this->userAnswerService = $userAnswerService;
         $this->quizHistoryService = $quizHistoryService;
@@ -56,6 +58,7 @@ class QuizController extends Controller
 
         if ($questions->isEmpty()) {
             Splade::toast('Este tópico ainda não possui perguntas.')->warning();
+
             return redirect()->back();
         }
 
@@ -76,8 +79,9 @@ class QuizController extends Controller
         $quizState = Session::get('quiz');
         $questionIndex = $questionNumber - 1;
 
-        if (!$quizState || !isset($quizState['question_ids'][$questionIndex])) {
+        if (! $quizState || ! isset($quizState['question_ids'][$questionIndex])) {
             Splade::toast('Quiz não encontrado ou finalizado.')->info();
+
             return redirect()->route('topics.show', $topic);
         }
 
@@ -91,7 +95,6 @@ class QuizController extends Controller
             'totalQuestions' => count($quizState['question_ids']),
         ]);
     }
-
 
     public function answer(Request $request, Question $question): \Illuminate\Http\JsonResponse
     {
@@ -132,7 +135,7 @@ class QuizController extends Controller
     {
         $quizState = Session::get('quiz');
 
-        if (!$quizState || $quizState['topic_id'] !== $topic->id) {
+        if (! $quizState || $quizState['topic_id'] !== $topic->id) {
             return redirect()->route('dashboard');
         }
 

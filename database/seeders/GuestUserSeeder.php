@@ -13,8 +13,8 @@ class GuestUserSeeder extends Seeder
         User::firstOrCreate(
             ['id' => 1],
             [
-                'name'     => 'Usuário Convidado',
-                'email'    => 'convidado@eidos.com',
+                'name' => 'Usuário Convidado',
+                'email' => 'convidado@eidos.com',
                 'password' => Hash::make('password'),
             ]
         );

@@ -9,7 +9,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckIfApproved
 {
-
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check()) {
@@ -17,7 +16,7 @@ class CheckIfApproved
 
             if ($user->email !== 'oscar.romanini.jr@gmail.com' && is_null($user->approved_at)) {
 
-                if (!$request->routeIs('login') && !$request->routeIs('logout')) {
+                if (! $request->routeIs('login') && ! $request->routeIs('logout')) {
                     Auth::logout();
 
                     return redirect()
