@@ -34,6 +34,6 @@ class QuizHistory extends Model
         $minutes = floor($this->duration_in_seconds / 60);
         $seconds = $this->duration_in_seconds % 60;
 
-        return str_pad($minutes, 2, '0', STR_PAD_LEFT) . ':' . str_pad($seconds, 2, '0', STR_PAD_LEFT);
+        return str_pad($minutes, 2, '0', STR_PAD_LEFT).':'.str_pad($seconds, 2, '0', STR_PAD_LEFT);
     }
 }

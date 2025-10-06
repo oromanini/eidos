@@ -141,4 +141,3 @@ return [
     'max_file_size' => 512, // 512MB
 
 ];
-

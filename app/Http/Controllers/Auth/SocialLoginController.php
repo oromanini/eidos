@@ -46,9 +46,9 @@ class SocialLoginController extends Controller
             return redirect()->route('dashboard');
 
         } catch (\Exception $e) {
-            Log::error('Socialite Callback Error: ' . $e->getMessage());
+            Log::error('Socialite Callback Error: '.$e->getMessage());
+
             return redirect()->route('login')->with('error', 'Algo deu errado durante a autenticação.');
         }
     }
 }
-

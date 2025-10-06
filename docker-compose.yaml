@@ -13,6 +13,8 @@ services:
     depends_on:
       - db
     working_dir: /var/www/html
+    networks:
+      - eidos-network
 
   vite:
     build:
@@ -26,18 +28,27 @@ services:
     ports:
       - "5173:5173"
     working_dir: /var/www/html
-    command: ./node_modules/.bin/vite
+    command: npm run dev
+    networks:
+      - eidos-network
 
   db:
     image: mysql:8.0
     container_name: eidos-db
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
       MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
     ports:
       - "3307:3306"
     volumes:
       - db-data:/var/lib/mysql
+    networks:
+      - eidos-network
 
 volumes:
   db-data:
+
+networks:
+  eidos-network:
+    driver: bridge
