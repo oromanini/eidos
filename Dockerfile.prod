@@ -1,76 +1,49 @@
 # ---- Estágio 1: Builder ----
-# Aqui instalamos todas as dependências e compilamos os assets
 FROM php:8.2-apache as builder
-
 WORKDIR /var/www/html
 
-# Instala dependências do sistema e extensões do PHP
+# Instala dependências e extensões
 RUN apt-get update && \
-    apt-get install -y \
-    libzip-dev \
-    libonig-dev \
-    unzip \
-    git \
-    curl \
-    gnupg \
-    && docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y libzip-dev libonig-dev unzip git curl gnupg && \
+    docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instala Composer
+# Instala Composer e Node.js
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs
 
-# Instala Node.js e PNPM
-RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs && \
-    npm install -g pnpm
-
-# Copia os arquivos de dependência primeiro para aproveitar o cache do Docker
+# Instala dependências do backend e frontend (NPM)
 COPY composer.json composer.lock ./
 RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
+COPY package.json package-lock.json ./
+RUN npm install
 
-# Copia os arquivos de dependência do PNPM
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
-
-# Copia o restante do código da aplicação
+# Copia o código e compila os assets
 COPY . .
+RUN npm run build
 
-# Compila os assets para produção com PNPM
-RUN pnpm run build
-
-# Otimiza o Composer para produção (remove pacotes de dev)
+# Otimiza o Composer para produção
 RUN composer install --optimize-autoloader --no-dev
 
-
 # ---- Estágio 2: Imagem Final ----
-# Esta é a imagem que de fato será enviada para o Cloud Run
 FROM php:8.2-apache
-
 WORKDIR /var/www/html
 
-# Instala apenas as extensões PHP necessárias para rodar a aplicação
+# Instala apenas extensões PHP necessárias
 RUN apt-get update && \
-    apt-get install -y \
-    libzip-dev \
-    libonig-dev \
-    unzip \
-    && docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y libzip-dev libonig-dev unzip && \
+    docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copia os arquivos da aplicação e os assets compilados do estágio "builder"
+# Copia os arquivos prontos do estágio "builder"
 COPY --from=builder /var/www/html .
 
-# Copia a configuração do Apache e ativa o mod_rewrite
+# Configura o Apache
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
-# Ajusta as permissões dos arquivos para o usuário do Apache
+# Ajusta permissões
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expõe a porta 80, padrão do Apache
 EXPOSE 80
-
-# Comando para iniciar o servidor
 CMD ["apache2-foreground"]
