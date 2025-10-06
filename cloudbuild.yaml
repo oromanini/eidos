@@ -1,0 +1,35 @@
+steps:
+  # 1. Construir a imagem Docker de produção
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA'
+      - '-f'
+      - 'Dockerfile.prod'
+      - '.'
+
+  # 2. Enviar a imagem para o Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA']
+
+  # 3. Fazer o deploy da nova imagem no Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'eidos-app' # Nome do nosso serviço no Cloud Run
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--add-cloudsql-instances=eidos-473523:us-central1:eidos-app'
+      - '--set-env-vars=DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/eidos-473523:us-central1:eidos-app,DB_DATABASE=eidos'
+      - '--set-secrets=APP_KEY=eidos-app-key:latest,DB_PASSWORD=eidos-db-password:latest,DB_USERNAME=eidos-db-user:latest'
+
+# Guarda a imagem que acabamos de construir
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA'
