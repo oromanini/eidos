@@ -33,3 +33,5 @@ steps:
 # Guarda a imagem que acabamos de construir
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA'
+options:
+  logging: CLOUD_LOGGING_ONLY
