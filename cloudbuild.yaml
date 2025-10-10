@@ -1,13 +1,28 @@
 steps:
-  # 1. Build
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA', '-f', 'Dockerfile.prod', '.']
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA'
+      - '-f'
+      - 'Dockerfile.prod'
+      - '.'
 
-  # 2. Push
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA']
 
-  # 3. Deploy
+  - name: 'gcr.io/google-appengine/exec-wrapper'
+    args:
+      - '-i'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA'
+      - '-s'
+      - 'eidos-473523:us-central1:eidos-app'
+      - '--'
+      - 'php'
+      - 'artisan'
+      - 'migrate'
+      - '--force'
+
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
@@ -20,9 +35,9 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--port=80'  # <-- ADICIONE ESTA LINHA
+      - '--port=80'
       - '--add-cloudsql-instances=eidos-473523:us-central1:eidos-app'
-      - '--set-env-vars=DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/eidos-473523:us-central1:eidos-app,DB_DATABASE=eidos'
+      - '--set-env-vars=DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/eidos-473523:us-central1:eidos-app,DB_DATABASE=eidos,LOG_CHANNEL=stderr'
       - '--set-secrets=APP_KEY=eidos-app-key:latest,DB_PASSWORD=eidos-db-password:latest,DB_USERNAME=eidos-db-user:latest'
 
 images:
