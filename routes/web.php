@@ -42,3 +42,37 @@ Route::middleware(['auth', 'splade'])->group(function () {
     Route::spladeTable();
     Route::spladeUploads();
 });
+
+Route::get('/debug-vite', function () {
+    $manifestPath = public_path('build/manifest.json');
+    $buildDirPath = public_path('build');
+
+    echo '<pre style="background-color: #111; color: #eee; padding: 20px; font-family: monospace; font-size: 14px; line-height: 1.6;">';
+    echo '<h1>-- Diagnóstico do Vite --</h1>';
+
+    echo "<h2>1. Caminho do Manifesto:</h2>";
+    var_dump($manifestPath);
+
+    echo "\n<h2>2. A pasta 'public/build' existe?</h2>";
+    var_dump(is_dir($buildDirPath));
+
+    echo "\n<h2>3. O arquivo 'manifest.json' existe?</h2>";
+    var_dump(file_exists($manifestPath));
+
+    if (file_exists($buildDirPath)) {
+        echo "\n<h2>4. Conteúdo da pasta 'public/build':</h2>";
+        // scandir lista os arquivos no diretório
+        var_dump(scandir($buildDirPath));
+    }
+
+    if (file_exists($manifestPath)) {
+        echo "\n<h2>5. O arquivo 'manifest.json' é legível?</h2>";
+        var_dump(is_readable($manifestPath));
+
+        echo "\n<h2>6. Conteúdo do 'manifest.json':</h2>";
+        // file_get_contents tenta ler o arquivo
+        var_dump(file_get_contents($manifestPath));
+    }
+
+    echo '</pre>';
+});
