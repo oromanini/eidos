@@ -22,6 +22,10 @@ RUN npm install
 COPY . .
 RUN npm run build
 
+# ---- PASSO DE VERIFICAÇÃO ----
+# Este comando vai listar o conteúdo da pasta de build ou falhar se ela não existir.
+RUN ls -la public/build
+
 # Otimiza o Composer para produção
 RUN composer install --optimize-autoloader --no-dev
 
@@ -42,7 +46,7 @@ COPY --from=builder /var/www/html .
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
-# Ajusta as permissões de TODOS os arquivos da aplicação (ESTA É A CORREÇÃO)
+# Ajusta as permissões de TODOS os arquivos da aplicação
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
