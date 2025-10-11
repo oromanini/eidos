@@ -7,10 +7,8 @@ steps:
       - '-f'
       - 'Dockerfile.prod'
       - '.'
-
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA']
-
   - name: 'gcr.io/google-appengine/exec-wrapper'
     args:
       - '-i'
@@ -22,7 +20,6 @@ steps:
       - 'artisan'
       - 'migrate'
       - '--force'
-
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
@@ -37,12 +34,9 @@ steps:
       - '--allow-unauthenticated'
       - '--port=80'
       - '--add-cloudsql-instances=eidos-473523:us-central1:eidos-app'
-      - '--set-env-vars=DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/eidos-473523:us-central1:eidos-app,DB_DATABASE=eidos,LOG_CHANNEL=stderr'
-      - '--set-secrets=APP_KEY=eidos-app-key:latest,DB_PASSWORD=eidos-db-password:latest,DB_USERNAME=eidos-db-user:latest'
-
+      - '--set-env-vars=DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/eidos-473523:us-central1:eidos-app,DB_DATABASE=eidos,LOG_CHANNEL=stderr,APP_URL=https://eidosapp.space,GOOGLE_CLIENT_ID=263581068195-ptqq3j29l7l4753qko00u2r8s2g03h6l.apps.googleusercontent.com,GOOGLE_REDIRECT_URI=https://eidosapp.space/auth/google/callback'
+      - '--set-secrets=APP_KEY=eidos-app-key:latest,DB_PASSWORD=eidos-db-password:latest,DB_USERNAME=eidos-db-user:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest'
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/eidos-repo/eidos-app:$COMMIT_SHA'
-
 options:
   logging: CLOUD_LOGGING_ONLY
-
