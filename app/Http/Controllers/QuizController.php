@@ -54,7 +54,7 @@ class QuizController extends Controller
 
     public function start(Topic $topic): RedirectResponse
     {
-        $questions = $topic->questions()->inRandomOrder()->pluck('id');
+        $questions = $topic->questions()->pluck('id');
 
         if ($questions->isEmpty()) {
             Splade::toast('Este tópico ainda não possui perguntas.')->warning();
