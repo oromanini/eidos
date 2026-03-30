@@ -33,8 +33,8 @@ return [
 
         'mongodb' => [
                 'driver' => 'mongodb',
-                'dsn' => env('MONGODB_URL'),
-                'database' => env('DB_DATABASE', 'eidos'),
+                'dsn' => env('DB_URI'),
+                'database' => env('eidos'),
             ],
 
         'sqlite' => [
