@@ -54,7 +54,7 @@ jobs:
           flags: --allow-unauthenticated
           env_vars: |
             APP_ENV=production
-            APP_DEBUG=false
+            APP_DEBUG=true
             LOG_CHANNEL=stderr
             APP_KEY=${{ secrets.APP_KEY }}
             DB_CONNECTION=mongodb
