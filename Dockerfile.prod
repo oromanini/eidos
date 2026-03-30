@@ -1,4 +1,4 @@
-# ---- Estágio 1: Builder ----
+# ---- Estágio 1: Builder (Compilação) ----
 FROM php:8.2-apache as builder
 WORKDIR /var/www/html
 
@@ -9,7 +9,7 @@ RUN apt-get update && \
     pecl install mongodb && docker-php-ext-enable mongodb && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instala Composer e Node.js
+# Instala Composer e Node.js 22
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs
 
@@ -23,14 +23,14 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Otimiza o Composer para produção
+# Otimiza o autoload do Composer para produção
 RUN composer install --optimize-autoloader --no-dev
 
 # ---- Estágio 2: Imagem Final ----
 FROM php:8.2-apache
 WORKDIR /var/www/html
 
-# Instala apenas as extensões PHP e bibliotecas de execução (incluindo o driver MongoDB)
+# Instala apenas as extensões PHP e bibliotecas de execução (incluindo MongoDB)
 RUN apt-get update && \
     apt-get install -y libzip-dev libonig-dev unzip libcurl4-openssl-dev libssl-dev && \
     docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
@@ -42,11 +42,12 @@ COPY --from=builder /var/www/html .
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
-# 1. Ajusta o Apache de forma FIXA para a porta 8080 (Cloud Run)
-RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+# Ajusta o Apache de forma segura apenas no ports.conf
+# (O seu 000-default.conf já está em 8080, por isso não o alteramos aqui para evitar o erro 808080)
+RUN sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
 
-# 2. Permissões críticas para o Laravel
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 775 storage bootstrap/cache
+# Permissões críticas para as pastas do Laravel
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 775 storage bootstrap/cache
 
 CMD ["apache2-foreground"]

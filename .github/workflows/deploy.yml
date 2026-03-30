@@ -51,12 +51,11 @@ jobs:
           service: eidos-web
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          flags: >
-            --allow-unauthenticated
+          flags: --allow-unauthenticated
           env_vars: |
             APP_ENV=production
             APP_DEBUG=false
             LOG_CHANNEL=stderr
             APP_KEY=${{ secrets.APP_KEY }}
             DB_CONNECTION=mongodb
-            MONGODB_URL=${{ secrets.MONGODB_URL }}
+            MONGODB_URL=${{ secrets.MONGO_URL }}
