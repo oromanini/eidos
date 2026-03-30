@@ -42,7 +42,6 @@ jobs:
       - name: Build e Push da Imagem Docker
         run: |
           IMAGE_PATH="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-          
           docker build -f Dockerfile.prod -t $IMAGE_PATH .
           docker push $IMAGE_PATH
 
@@ -59,9 +58,5 @@ jobs:
             APP_DEBUG=false
             LOG_CHANNEL=stderr
             APP_KEY=${{ secrets.APP_KEY }}
-            DB_CONNECTION=${{ secrets.DB_CONNECTION }}
-            DB_HOST=${{ secrets.DB_HOST }}
-            DB_PORT=${{ secrets.DB_PORT }}
-            DB_DATABASE=${{ secrets.DB_DATABASE }}
-            DB_USERNAME=${{ secrets.DB_USERNAME }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_CONNECTION=mongodb
+            MONGODB_URL=${{ secrets.MONGODB_URL }}

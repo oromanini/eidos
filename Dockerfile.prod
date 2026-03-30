@@ -2,29 +2,26 @@
 FROM php:8.2-apache as builder
 WORKDIR /var/www/html
 
-# Instala dependências e extensões
+# Instala dependências do sistema e bibliotecas para o driver do MongoDB
 RUN apt-get update && \
-    apt-get install -y libzip-dev libonig-dev unzip git curl gnupg && \
+    apt-get install -y libzip-dev libonig-dev unzip git curl gnupg libcurl4-openssl-dev pkg-config libssl-dev && \
     docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
+    pecl install mongodb && docker-php-ext-enable mongodb && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instala Composer e Node.js
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs
 
-# Instala dependências do backend e frontend (NPM)
+# Instala dependências do backend e frontend
 COPY composer.json composer.lock ./
 RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Copia o código e compila os assets
+# Copia o código e compila os assets (Vite)
 COPY . .
 RUN npm run build
-
-# ---- PASSO DE VERIFICAÇÃO ----
-# Este comando vai listar o conteúdo da pasta de build ou falhar se ela não existir.
-RUN ls -la public/build
 
 # Otimiza o Composer para produção
 RUN composer install --optimize-autoloader --no-dev
@@ -33,24 +30,23 @@ RUN composer install --optimize-autoloader --no-dev
 FROM php:8.2-apache
 WORKDIR /var/www/html
 
-# Instala apenas extensões PHP necessárias
+# Instala apenas as extensões PHP e bibliotecas de execução (incluindo o driver MongoDB)
 RUN apt-get update && \
-    apt-get install -y libzip-dev libonig-dev unzip && \
+    apt-get install -y libzip-dev libonig-dev unzip libcurl4-openssl-dev libssl-dev && \
     docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
+    pecl install mongodb && docker-php-ext-enable mongodb && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copia os arquivos prontos do estágio "builder"
+# Copia os arquivos prontos do builder
 COPY --from=builder /var/www/html .
-# Copia a configuração do Apache
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
-# 1. Ajusta o Apache de forma FIXA para a porta 8080 (Evita o erro de variável de ambiente no Cloud Run)
+# 1. Ajusta o Apache de forma FIXA para a porta 8080 (Cloud Run)
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-# 2. Permissões corretas para o servidor web e para as pastas do Laravel
+# 2. Permissões críticas para o Laravel
 RUN chown -R www-data:www-data /var/www/html
 RUN chmod -R 775 storage bootstrap/cache
 
-# Inicia o Apache na porta que o Cloud Run espera
 CMD ["apache2-foreground"]
