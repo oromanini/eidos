@@ -32,10 +32,10 @@ return [
     'connections' => [
 
         'mongodb' => [
-                'driver' => 'mongodb',
-                'dsn' => env('DB_URI'),
-                'database' => env('eidos'),
-            ],
+            'driver' => 'mongodb',
+            'dsn' => env('MONGO_ATLAS_URI', env('DB_URI')),
+            'database' => env('MONGO_DB_DATABASE', env('DB_DATABASE', 'eidos')),
+        ],
 
         'sqlite' => [
             'driver' => 'sqlite',
