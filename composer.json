@@ -14,6 +14,7 @@
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
         "league/csv": "^9.25",
+        "mongodb/laravel-mongodb": "^5.7",
         "protonemedia/laravel-splade": "^1.4"
     },
     "require-dev": {
