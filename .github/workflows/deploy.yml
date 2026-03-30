@@ -3,14 +3,13 @@ name: Deploy Eidos to GCP
 on:
   push:
     branches:
-      - master # O deploy roda sozinho sempre que você mandar código pra main
+      - master
 
 env:
   PROJECT_ID: eidos-491801
   REGION: us-central1
   REPO_NAME: eidos-repo
   IMAGE_NAME: eidos-app
-  # Variáveis geradas pelo seu Terraform:
   WIF_PROVIDER: 'projects/984601237646/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
   SERVICE_ACCOUNT: 'github-actions-deploy-sa@eidos-491801.iam.gserviceaccount.com'
 
@@ -19,29 +18,31 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # Essencial para o Workload Identity funcionar
+      id-token: write
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Autenticação no Google Cloud
+        id: auth
         uses: google-github-actions/auth@v2
         with:
+          token_format: 'access_token'
           workload_identity_provider: ${{ env.WIF_PROVIDER }}
           service_account: ${{ env.SERVICE_ACCOUNT }}
 
-      - name: Setup do Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configurar Docker para o Artifact Registry
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+      - name: Login no Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
 
       - name: Build e Push da Imagem Docker
         run: |
           IMAGE_PATH="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           
-          # Usando o seu Dockerfile.prod nativo
           docker build -f Dockerfile.prod -t $IMAGE_PATH .
           docker push $IMAGE_PATH
 
@@ -54,5 +55,13 @@ jobs:
           flags: >
             --allow-unauthenticated
           env_vars: |
-            DB_CONNECTION=mongodb
-            DB_URI=${{ secrets.MONGO_ATLAS_URI }}
+            APP_ENV=production
+            APP_DEBUG=false
+            LOG_CHANNEL=stderr
+            APP_KEY=${{ secrets.APP_KEY }}
+            DB_CONNECTION=${{ secrets.DB_CONNECTION }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_DATABASE=${{ secrets.DB_DATABASE }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
