@@ -2,7 +2,7 @@
 FROM php:8.2-apache as builder
 WORKDIR /var/www/html
 
-# Instala dependências do sistema e bibliotecas para o driver do MongoDB
+# Instala dependências do sistema e driver do MongoDB
 RUN apt-get update && \
     apt-get install -y libzip-dev libonig-dev unzip git curl gnupg libcurl4-openssl-dev pkg-config libssl-dev && \
     docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
@@ -16,6 +16,7 @@ RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -
 # Instala dependências do backend e frontend
 COPY composer.json composer.lock ./
 RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
+
 COPY package.json package-lock.json ./
 RUN npm install
 
@@ -26,28 +27,33 @@ RUN npm run build
 # Otimiza o autoload do Composer para produção
 RUN composer install --optimize-autoloader --no-dev
 
-# ---- Estágio 2: Imagem Final ----
+# --- LIMPEZA DE CACHE CRÍTICA ---
+# Remove qualquer arquivo de cache que possa ter vindo da sua máquina local via COPY
+RUN rm -f bootstrap/cache/*.php
+
+# ---- Estágio 2: Imagem Final (Execução) ----
 FROM php:8.2-apache
 WORKDIR /var/www/html
 
-# Instala apenas as extensões PHP e bibliotecas de execução (incluindo MongoDB)
+# Instala apenas as bibliotecas de execução necessárias
 RUN apt-get update && \
     apt-get install -y libzip-dev libonig-dev unzip libcurl4-openssl-dev libssl-dev && \
     docker-php-ext-install pdo pdo_mysql opcache mbstring zip exif && \
     pecl install mongodb && docker-php-ext-enable mongodb && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copia os arquivos prontos do builder
+# Copia os arquivos do estágio builder
 COPY --from=builder /var/www/html .
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
-# Ajusta o Apache de forma segura apenas no ports.conf
-# (O seu 000-default.conf já está em 8080, por isso não o alteramos aqui para evitar o erro 808080)
+# Ajusta o Apache de forma segura apenas no ports.conf 
+# (Evita o erro 808080 se o seu 000-default já estiver correto)
 RUN sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
 
-# Permissões críticas para as pastas do Laravel
+# Permissões do Laravel
 RUN chown -R www-data:www-data /var/www/html && \
     chmod -R 775 storage bootstrap/cache
 
-CMD ["apache2-foreground"]
+# Garante que o container comece sem cache de configuração "sujo"
+CMD ["sh", "-c", "php artisan config:clear && apache2-foreground"]
