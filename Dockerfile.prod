@@ -41,13 +41,16 @@ RUN apt-get update && \
 
 # Copia os arquivos prontos do estágio "builder"
 COPY --from=builder /var/www/html .
-
 # Copia a configuração do Apache
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 RUN a2enmod rewrite
 
-# Ajusta as permissões de TODOS os arquivos da aplicação
-RUN chown -R www-data:www-data /var/www/html
+# 1. Ajusta o Apache de forma FIXA para a porta 8080 (Evita o erro de variável de ambiente no Cloud Run)
+RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-EXPOSE 80
+# 2. Permissões corretas para o servidor web e para as pastas do Laravel
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 775 storage bootstrap/cache
+
+# Inicia o Apache na porta que o Cloud Run espera
 CMD ["apache2-foreground"]
