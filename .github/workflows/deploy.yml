@@ -3,7 +3,7 @@ name: Deploy Eidos to GCP
 on:
   push:
     branches:
-      - main # O deploy roda sozinho sempre que você mandar código pra main
+      - master # O deploy roda sozinho sempre que você mandar código pra main
 
 env:
   PROJECT_ID: eidos-491801
