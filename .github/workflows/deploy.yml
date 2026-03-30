@@ -1,0 +1,58 @@
+name: Deploy Eidos to GCP
+
+on:
+  push:
+    branches:
+      - main # O deploy roda sozinho sempre que você mandar código pra main
+
+env:
+  PROJECT_ID: eidos-491801
+  REGION: us-central1
+  REPO_NAME: eidos-repo
+  IMAGE_NAME: eidos-app
+  # Variáveis geradas pelo seu Terraform:
+  WIF_PROVIDER: 'projects/984601237646/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
+  SERVICE_ACCOUNT: 'github-actions-deploy-sa@eidos-491801.iam.gserviceaccount.com'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Essencial para o Workload Identity funcionar
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Autenticação no Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - name: Setup do Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configurar Docker para o Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build e Push da Imagem Docker
+        run: |
+          IMAGE_PATH="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          
+          # Usando o seu Dockerfile.prod nativo
+          docker build -f Dockerfile.prod -t $IMAGE_PATH .
+          docker push $IMAGE_PATH
+
+      - name: Deploy no Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: eidos-web
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          flags: >
+            --allow-unauthenticated
+          env_vars: |
+            DB_CONNECTION=mongodb
+            DB_URI=${{ secrets.MONGO_ATLAS_URI }}
