@@ -55,6 +55,7 @@ jobs:
           env_vars: |
             APP_ENV=production
             APP_DEBUG=true
+            DB_DATABASE=eidos
             LOG_CHANNEL=stderr
             APP_KEY=${{ secrets.APP_KEY }}
             DB_CONNECTION=mongodb
