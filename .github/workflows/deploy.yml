@@ -59,4 +59,5 @@ jobs:
             LOG_CHANNEL=stderr
             APP_KEY=${{ secrets.APP_KEY }}
             DB_CONNECTION=mongodb
-            DB_URI=${{ secrets.MONGO_ATLAS_URI }} 
+            MONGODB_URL=${{ secrets.MONGO_ATLAS_URI }}
+            DB_URI=${{ secrets.MONGO_ATLAS_URI }}
