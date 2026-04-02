@@ -61,3 +61,6 @@ jobs:
             DB_CONNECTION=mongodb
             MONGODB_URL=${{ secrets.MONGO_ATLAS_URI }}
             DB_URI=${{ secrets.MONGO_ATLAS_URI }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
