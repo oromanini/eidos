@@ -44,9 +44,15 @@ class AdminController extends Controller
     public function topicsIndex(): View
     {
         $topics = Topic::query()
-            ->withCount('questions')
             ->orderByDesc('created_at')
             ->paginate(15);
+
+        $topics->load('questions');
+        $topics->getCollection()->transform(function (Topic $topic) {
+            $topic->setAttribute('questions_count', $topic->questions->count());
+
+            return $topic;
+        });
 
         return view('admin.topics.index', compact('topics'));
     }
