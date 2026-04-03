@@ -1,8 +1,14 @@
 <x-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Gerenciamento de Usuários') }}
-        </h2>
+        <div class="flex items-center justify-between gap-4">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Gerenciamento de Usuários') }}
+            </h2>
+            <a href="{{ route('admin.topics.index') }}"
+               class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                Gerenciar Tópicos
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12">
@@ -33,4 +39,3 @@
         </div>
     </div>
 </x-layout>
-

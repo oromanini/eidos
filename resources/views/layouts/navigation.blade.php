@@ -21,8 +21,11 @@
                         </x-nav-link>
 
                         @if(Auth::user()->email === 'oscar.romanini.jr@gmail.com')
-                            <x-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.index')">
-                                {{ __('Admin') }}
+                            <x-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
+                                {{ __('Admin Usuários') }}
+                            </x-nav-link>
+                            <x-nav-link href="{{ route('admin.topics.index') }}" :active="request()->routeIs('admin.topics.*')">
+                                {{ __('Admin Tópicos') }}
                             </x-nav-link>
                         @endif
                     </div>
@@ -63,8 +66,11 @@
                 </x-responsive-nav-link>
 
                 @if(Auth::user()->email === 'oscar.romanini.jr@gmail.com')
-                    <x-responsive-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.index')">
-                        {{ __('Admin') }}
+                    <x-responsive-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
+                        {{ __('Admin Usuários') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link href="{{ route('admin.topics.index') }}" :active="request()->routeIs('admin.topics.*')">
+                        {{ __('Admin Tópicos') }}
                     </x-responsive-nav-link>
                 @endif
             </div>

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use ProtoneMedia\Splade\Facades\Toast;
 use ProtoneMedia\Splade\SpladeTable; // Importe a classe View
 
@@ -36,5 +39,64 @@ class AdminController extends Controller
             ->autoDismiss(5);
 
         return redirect()->back();
+    }
+
+    public function topicsIndex(): View
+    {
+        $topics = Topic::query()
+            ->withCount('questions')
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
+        return view('admin.topics.index', compact('topics'));
+    }
+
+    public function topicsEdit(Topic $topic): View
+    {
+        $topic->load('questions');
+
+        return view('admin.topics.edit', compact('topic'));
+    }
+
+    public function topicsUpdate(Request $request, Topic $topic): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'questions' => ['required', 'array', 'min:1'],
+            'questions.*.id' => ['required', 'string'],
+            'questions.*.question_text' => ['required', 'string'],
+            'questions.*.options.a' => ['required', 'string'],
+            'questions.*.options.b' => ['required', 'string'],
+            'questions.*.options.c' => ['required', 'string'],
+            'questions.*.options.d' => ['required', 'string'],
+            'questions.*.correct_answer' => ['required', 'string', 'in:a,b,c,d'],
+        ]);
+
+        $topic->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'] ?? '',
+        ]);
+
+        foreach ($validated['questions'] as $questionData) {
+            $question = $topic->questions()->find($questionData['id']);
+
+            if (! $question) {
+                continue;
+            }
+
+            $question->update([
+                'question_text' => $questionData['question_text'],
+                'options' => $questionData['options'],
+                'correct_answer' => $questionData['correct_answer'],
+            ]);
+        }
+
+        Toast::title('Tópico atualizado!')
+            ->message('Título, descrição, perguntas e respostas foram salvos com sucesso.')
+            ->success()
+            ->autoDismiss(5);
+
+        return redirect()->route('admin.topics.edit', $topic);
     }
 }
