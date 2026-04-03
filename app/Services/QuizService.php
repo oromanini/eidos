@@ -74,7 +74,7 @@ class QuizService
             $altB = trim($record['alternativa_b']);
             $altC = trim($record['alternativa_c']);
             $altD = trim($record['alternativa_d']);
-            $correctAnswer = trim($record['resposta_correta']);
+            $correctAnswer = strtolower(trim($record['resposta_correta']));
 
             // Pula a linha se qualquer campo essencial estiver faltando.
             if (empty($questionText) || empty($altA) || empty($altB) || empty($altC) || empty($altD) || empty($correctAnswer)) {
