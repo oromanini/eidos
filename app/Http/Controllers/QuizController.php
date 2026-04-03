@@ -102,7 +102,10 @@ class QuizController extends Controller
     {
         $request->validate(['answer' => 'required|string|in:a,b,c,d']);
 
-        $isCorrect = $request->answer === $question->correct_answer;
+        $normalizedUserAnswer = strtolower(trim($request->answer));
+        $normalizedCorrectAnswer = strtolower(trim((string) $question->correct_answer));
+
+        $isCorrect = $normalizedUserAnswer === $normalizedCorrectAnswer;
 
         if ($isCorrect) {
             Session::increment('quiz.score');
@@ -117,7 +120,7 @@ class QuizController extends Controller
 
         return response()->json([
             'is_correct' => $isCorrect,
-            'correct_answer' => $question->correct_answer,
+            'correct_answer' => $normalizedCorrectAnswer,
         ]);
     }
 
