@@ -45,7 +45,9 @@ class QuizController extends Controller
 
         $filePath = $request->file('csv_file')->store('imports');
 
-        $this->quizService->importQuestionsFromCsv($filePath, auth()->id());
+        $userId = (int) $request->user()->id;
+
+        $this->quizService->importQuestionsFromCsv($filePath, $userId);
 
         Splade::toast('O tópico foi importado com sucesso!')->autoDismiss(5);
 
