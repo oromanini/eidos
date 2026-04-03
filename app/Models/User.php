@@ -11,6 +11,11 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * Users are stored in the relational auth database.
+     */
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'name',
         'email',
