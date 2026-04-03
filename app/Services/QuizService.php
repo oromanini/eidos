@@ -20,7 +20,7 @@ class QuizService
         $this->topicRepository = $topicRepository;
     }
 
-    public function importQuestionsFromCsv(string $filePath, int $userId): void
+    public function importQuestionsFromCsv(string $filePath, int|string $userId): void
     {
         if (! Storage::exists($filePath)) {
             return;

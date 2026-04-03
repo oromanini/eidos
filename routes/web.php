@@ -34,6 +34,9 @@ Route::middleware(['auth', 'splade'])->group(function () {
     Route::middleware('is_admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', [AdminController::class, 'index'])->name('users.index');
         Route::post('/users/{user}/approve', [AdminController::class, 'approve'])->name('users.approve');
+        Route::get('/topics', [AdminController::class, 'topicsIndex'])->name('topics.index');
+        Route::get('/topics/{topic}/edit', [AdminController::class, 'topicsEdit'])->name('topics.edit');
+        Route::put('/topics/{topic}', [AdminController::class, 'topicsUpdate'])->name('topics.update');
     });
 
     Route::spladeWithVueBridge();

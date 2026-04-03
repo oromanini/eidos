@@ -45,7 +45,7 @@ class QuizController extends Controller
 
         $filePath = $request->file('csv_file')->store('imports');
 
-        $userId = (int) $request->user()->id;
+        $userId = $request->user()->id;
 
         $this->quizService->importQuestionsFromCsv($filePath, $userId);
 

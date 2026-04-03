@@ -17,7 +17,7 @@ class UserAnswerService
     /**
      * Salva a resposta de um usuário.
      */
-    public function saveUserAnswer(int $userId, int $questionId, string $userAnswer, bool $isCorrect): UserAnswer
+    public function saveUserAnswer(int|string $userId, int|string $questionId, string $userAnswer, bool $isCorrect): UserAnswer
     {
         return $this->userAnswerRepository->create([
             'user_id' => $userId,
