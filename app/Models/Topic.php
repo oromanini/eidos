@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use MongoDB\Laravel\Eloquent\Model;
 
 class Topic extends Model
@@ -32,6 +33,27 @@ class Topic extends Model
         return $this->hasMany(Question::class);
     }
 
+
+
+    public function knowledge(): HasOne
+    {
+        return $this->hasOne(Knowledge::class);
+    }
+
+    public function infographics(): HasMany
+    {
+        return $this->hasMany(Infographic::class);
+    }
+
+    public function audios(): HasMany
+    {
+        return $this->hasMany(Audio::class);
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(Video::class);
+    }
 
     public function category(): BelongsTo
     {
