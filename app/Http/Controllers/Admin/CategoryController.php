@@ -13,7 +13,16 @@ class CategoryController extends Controller
 {
     public function index(): View
     {
-        $categories = Category::query()->withCount('topics')->orderBy('name')->paginate(15);
+        $categories = Category::query()
+            ->with('topics:id,category_id')
+            ->orderBy('name')
+            ->paginate(15);
+
+        $categories->getCollection()->transform(function (Category $category): Category {
+            $category->setAttribute('topics_count', $category->topics->count());
+
+            return $category;
+        });
 
         return view('admin.categories.index', compact('categories'));
     }
