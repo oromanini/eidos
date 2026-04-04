@@ -1,4 +1,4 @@
-<x-splade-data default="{ open: false }">
+<x-splade-data default="{ open: false, adminOpen: false }">
     <nav class="bg-white border-b border-gray-100">
         <!-- Primary Navigation Menu -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,12 +22,33 @@
                         </x-nav-link>
 
                         @if(Auth::user()->email === 'oscar.romanini.jr@gmail.com')
-                            <x-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
-                                {{ __('Admin Usuários') }}
-                            </x-nav-link>
-                            <x-nav-link href="{{ route('admin.topics.index') }}" :active="request()->routeIs('admin.topics.*')">
-                                {{ __('Admin Tópicos') }}
-                            </x-nav-link>
+                            <div class="relative flex items-center">
+                                <button @click="data.adminOpen = !data.adminOpen"
+                                        @click.outside="data.adminOpen = false"
+                                        class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
+                                        :class="request()->routeIs('admin.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'">
+                                    <span>{{ __('Admin') }}</span>
+                                    <svg class="h-4 w-4 transition-transform" :class="{ 'rotate-180': data.adminOpen }" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+
+                                <div v-show="data.adminOpen"
+                                     class="absolute left-0 top-full z-40 mt-2 w-52 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                                    <Link href="{{ route('admin.users.index') }}"
+                                          class="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.users.*') ? 'bg-gray-100 font-semibold text-indigo-700' : '' }}">
+                                        {{ __('Usuários') }}
+                                    </Link>
+                                    <Link href="{{ route('admin.topics.index') }}"
+                                          class="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.topics.*') ? 'bg-gray-100 font-semibold text-indigo-700' : '' }}">
+                                        {{ __('Tópicos') }}
+                                    </Link>
+                                    <Link href="{{ route('admin.categories.index') }}"
+                                          class="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.categories.*') ? 'bg-gray-100 font-semibold text-indigo-700' : '' }}">
+                                        {{ __('Categorias') }}
+                                    </Link>
+                                </div>
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -75,11 +96,15 @@
                 </x-responsive-nav-link>
 
                 @if(Auth::user()->email === 'oscar.romanini.jr@gmail.com')
+                    <div class="px-4 pt-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</div>
                     <x-responsive-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
-                        {{ __('Admin Usuários') }}
+                        {{ __('Usuários') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link href="{{ route('admin.topics.index') }}" :active="request()->routeIs('admin.topics.*')">
-                        {{ __('Admin Tópicos') }}
+                        {{ __('Tópicos') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link href="{{ route('admin.categories.index') }}" :active="request()->routeIs('admin.categories.*')">
+                        {{ __('Categorias') }}
                     </x-responsive-nav-link>
                 @endif
             </div>

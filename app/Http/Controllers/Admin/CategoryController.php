@@ -67,10 +67,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
-        $defaultCategory = Category::query()->firstOrCreate(
-            ['name' => 'Assuntos gerais'],
-            ['description' => 'Categoria padrão para tópicos.']
-        );
+        $defaultCategory = Category::firstOrCreateGeneralKnowledge();
 
         if ($category->id === $defaultCategory->id) {
             Toast::warning('A categoria padrão não pode ser removida.')->autoDismiss(5);
@@ -81,7 +78,7 @@ class CategoryController extends Controller
         $category->topics()->update(['category_id' => $defaultCategory->id]);
         $category->delete();
 
-        Toast::success('Categoria removida e tópicos movidos para Assuntos gerais.')->autoDismiss(5);
+        Toast::success('Categoria removida e tópicos movidos para Conhecimentos gerais.')->autoDismiss(5);
 
         return redirect()->route('admin.categories.index');
     }

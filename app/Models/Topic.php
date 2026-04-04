@@ -18,6 +18,15 @@ class Topic extends Model
         'user_id',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $topic): void {
+            if (blank($topic->category_id)) {
+                $topic->category_id = Category::firstOrCreateGeneralKnowledge()->getKey();
+            }
+        });
+    }
+
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
@@ -31,5 +40,17 @@ class Topic extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public static function assignUncategorizedToGeneralKnowledge(): void
+    {
+        $defaultCategoryId = Category::firstOrCreateGeneralKnowledge()->getKey();
+
+        static::query()
+            ->where(function ($query): void {
+                $query->whereNull('category_id')
+                    ->orWhere('category_id', '');
+            })
+            ->update(['category_id' => $defaultCategoryId]);
     }
 }
