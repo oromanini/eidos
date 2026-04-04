@@ -20,6 +20,7 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tópico</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perguntas</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
@@ -29,6 +30,7 @@
                             @forelse($topics as $topic)
                                 <tr>
                                     <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $topic->name }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $topic->category->name ?? 'Assuntos gerais' }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $topic->description ?: '—' }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $topic->questions_count }}</td>
                                     <td class="px-6 py-4 text-right">
@@ -40,7 +42,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">
+                                    <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
                                         Nenhum tópico encontrado.
                                     </td>
                                 </tr>

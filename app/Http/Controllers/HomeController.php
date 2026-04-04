@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\TopicRepository;
+use App\Models\Category;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function __invoke(TopicRepository $topicRepository): View
+    public function __invoke(): View
     {
-        $topics = $topicRepository->all();
+        $categories = Category::query()
+            ->withCount('topics')
+            ->orderBy('name')
+            ->get();
 
         return view('home', [
-            'topics' => $topics,
+            'categories' => $categories,
         ]);
     }
 }
