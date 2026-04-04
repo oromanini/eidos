@@ -13,20 +13,29 @@
                 <p class="text-sm text-gray-500 mt-2">Tópicos ordenados do mais recente para o mais antigo.</p>
             </div>
 
-            @if($category->topics->isNotEmpty())
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach($category->topics as $topic)
-                        <Link href="{{ route('topics.show', $topic) }}" class="block p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ease-in-out group">
-                            <div class="flex items-center justify-between gap-3 mb-3">
-                                <h3 class="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $topic->name }}</h3>
-                                <span class="text-xs whitespace-nowrap px-2 py-1 rounded-full bg-blue-50 text-blue-700">{{ optional($topic->created_at)->format('d/m/Y') }}</span>
+            @if($topics->isNotEmpty())
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach($topics as $topic)
+                        <Link href="{{ route('topics.show', $topic) }}"
+                              class="block p-5 bg-blue-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group min-h-44">
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <h3 class="text-lg md:text-xl font-semibold text-white leading-snug">{{ $topic->name }}</h3>
+                                <span class="text-[11px] whitespace-nowrap px-2 py-1 rounded-full bg-white/20 text-blue-100">
+                                    {{ optional($topic->created_at)->format('d/m/Y') }}
+                                </span>
                             </div>
-                            <p class="text-gray-600 mb-4 h-12 overflow-hidden">{{ $topic->description ?: 'Nenhuma descrição disponível.' }}</p>
+                            <p class="text-blue-100 text-sm leading-relaxed">
+                                {{ $topic->description ?: 'Nenhuma descrição disponível.' }}
+                            </p>
                             <div class="mt-4 text-right">
-                                <span class="text-blue-500 font-semibold text-lg">Selecionar tópico &rarr;</span>
+                                <span class="text-white font-semibold text-sm group-hover:underline">Abrir tópico &rarr;</span>
                             </div>
                         </Link>
                     @endforeach
+                </div>
+
+                <div class="mt-8">
+                    {{ $topics->onEachSide(1)->links() }}
                 </div>
             @else
                 <div class="bg-white rounded-xl shadow-lg p-12 text-center">

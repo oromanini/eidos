@@ -12,8 +12,12 @@ class CategoryController extends Controller
     {
         Topic::assignUncategorizedToGeneralKnowledge();
 
-        $category->load(['topics' => fn ($query) => $query->orderByDesc('created_at')]);
+        $topics = Topic::query()
+            ->where('category_id', $category->id)
+            ->orderByDesc('created_at')
+            ->paginate(9)
+            ->withQueryString();
 
-        return view('categories.show', compact('category'));
+        return view('categories.show', compact('category', 'topics'));
     }
 }

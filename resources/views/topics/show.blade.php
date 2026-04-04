@@ -1,185 +1,205 @@
 <x-layout>
-    <div class="bg-gray-50 min-h-screen">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10" id="topic-screen">
-            <div class="mb-4 text-sm md:text-base">
-                <Link href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-800 transition-colors">Home</Link>
-                @if($topic->category)
+    <x-splade-data :default="[
+        'activeTab' => request('tab', 'resumo'),
+        'audioToDelete' => null,
+        'videoToDelete' => null,
+        'audioToEdit' => null,
+        'videoToEdit' => null,
+    ]">
+        <div class="bg-gray-50 min-h-screen">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10" id="topic-screen">
+                <div class="mb-4 text-sm md:text-base">
+                    <Link href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-800 transition-colors">Home</Link>
+                    @if($topic->category)
+                        <span class="text-gray-400 mx-2">/</span>
+                        <Link href="{{ route('categories.show', $topic->category) }}" class="text-blue-600 hover:text-blue-800 transition-colors">{{ $topic->category->name }}</Link>
+                    @endif
                     <span class="text-gray-400 mx-2">/</span>
-                    <Link href="{{ route('categories.show', $topic->category) }}" class="text-blue-600 hover:text-blue-800 transition-colors">{{ $topic->category->name }}</Link>
-                @endif
-                <span class="text-gray-400 mx-2">/</span>
-                <span class="text-gray-600">{{ $topic->name }}</span>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-md p-4 md:p-8">
-                <h1 class="text-2xl md:text-4xl font-bold text-gray-800">{{ $topic->name }}</h1>
-                <p class="text-gray-600 mt-3">{{ $topic->description ?: 'Explore os materiais deste tópico usando as abas abaixo.' }}</p>
-
-                <div class="mt-6 overflow-x-auto pb-2">
-                    <div class="inline-flex w-max rounded-xl bg-gray-100 p-1 gap-1" id="topic-tabs" role="tablist">
-                        <button data-tab="resumo" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-600" role="tab" type="button">Resumo</button>
-                        <button data-tab="infograficos" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-600" role="tab" type="button">Infográficos</button>
-                        <button data-tab="audios" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-600" role="tab" type="button">Áudios</button>
-                        <button data-tab="videos" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-600" role="tab" type="button">Vídeos</button>
-                        <button data-tab="questoes" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-600" role="tab" type="button">Múltipla escolha</button>
-                        <button data-tab="abertas-ia" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-600" role="tab" type="button">Questões abertas IA</button>
-                        <button data-tab="pergunte-ia" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-600" role="tab" type="button">Pergunte à IA</button>
-                    </div>
+                    <span class="text-gray-600">{{ $topic->name }}</span>
                 </div>
 
-                <div class="mt-6" id="topic-panels">
-                    <section data-panel="resumo" class="tab-panel space-y-6">
-                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 md:p-6">
-                            <h2 class="text-xl font-bold text-gray-900">Sumário</h2>
-                            @if(!empty($summarySections))
-                                <ul class="mt-3 space-y-2 list-decimal list-inside text-blue-700">
-                                    @foreach($summarySections as $section)
-                                        <li>
-                                            <a href="#{{ $section['id'] }}" class="hover:underline">{{ $section['title'] }}</a>
-                                        </li>
-                                    @endforeach
+                <div class="bg-white rounded-2xl shadow-md p-4 md:p-8">
+                    <h1 class="text-2xl md:text-4xl font-bold text-gray-800">{{ $topic->name }}</h1>
+                    <p class="text-gray-600 mt-3">{{ $topic->description ?: 'Explore os materiais deste tópico usando as abas abaixo.' }}</p>
+
+                    <div class="mt-6 overflow-x-auto pb-2">
+                        <div class="inline-flex w-max rounded-xl bg-gray-100 p-1 gap-1" id="topic-tabs" role="tablist">
+                            @foreach(['resumo' => 'Resumo', 'infograficos' => 'Infográficos', 'audios' => 'Áudios', 'videos' => 'Vídeos', 'questoes' => 'Múltipla escolha', 'abertas-ia' => 'Questões abertas IA', 'pergunte-ia' => 'Pergunte à IA'] as $key => $label)
+                                <button @click.prevent="data.activeTab = '{{ $key }}'"
+                                        :class="data.activeTab === '{{ $key }}' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600'"
+                                        class="px-4 py-2 rounded-lg text-sm font-semibold transition"
+                                        type="button">{{ $label }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="mt-6 space-y-6">
+                        <section v-show="data.activeTab === 'resumo'" class="space-y-4">
+                            <form method="POST" action="{{ route('topics.summary.update', $topic) }}" class="space-y-4 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                @csrf
+                                <h2 class="text-lg font-semibold text-gray-900">Resumo (Google Docs + tabela de conteúdos)</h2>
+                                <input name="summary_doc_url" value="{{ old('summary_doc_url', $knowledge->summary_doc_url) }}" class="w-full rounded-lg border-gray-300" placeholder="Cole a URL do Google Docs" />
+                                <textarea name="summary_toc_text" rows="5" class="w-full rounded-lg border-gray-300" placeholder="Formato: Título|Descrição (uma linha por seção)">@foreach($summarySections as $section){{ $section['title'] }}|{{ $section['body'] }}
+@endforeach</textarea>
+                                <textarea name="open_questions_json" rows="4" class="w-full rounded-lg border-gray-300" placeholder='Perguntas abertas (json)'>{{ old('open_questions_json', json_encode($knowledge->open_questions ?? [], JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)) }}</textarea>
+                                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">Salvar resumo</button>
+                            </form>
+
+                            <div class="bg-white border border-gray-200 rounded-xl p-4">
+                                <h3 class="font-semibold text-gray-900">Sumário</h3>
+                                <ul class="mt-2 list-decimal list-inside text-blue-700 space-y-1">
+                                    @forelse($summarySections as $section)
+                                        <li><a href="#{{ $section['id'] }}" class="hover:underline">{{ $section['title'] }}</a></li>
+                                    @empty
+                                        <li class="text-gray-500 list-none">Sem seções cadastradas.</li>
+                                    @endforelse
                                 </ul>
-                            @else
-                                <p class="text-gray-600 mt-2">Ainda não há resumo estruturado. Adicione conteúdo ao tópico para gerar um índice dinâmico.</p>
+                            </div>
+
+                            @if($knowledge->summary_doc_embed_url)
+                                <iframe src="{{ $knowledge->summary_doc_embed_url }}" class="w-full h-[520px] rounded-xl border border-gray-200" loading="lazy"></iframe>
                             @endif
-                        </div>
+                        </section>
 
-                        <div class="space-y-4">
-                            @forelse($summarySections as $section)
-                                <article id="{{ $section['id'] }}" class="scroll-mt-24 bg-white border border-gray-200 rounded-xl p-4 md:p-6">
-                                    <h3 class="text-lg font-bold text-gray-900">{{ $section['title'] }}</h3>
-                                    <p class="text-gray-700 whitespace-pre-line mt-2">{{ $section['body'] }}</p>
-                                </article>
+                        <section v-show="data.activeTab === 'infograficos'" class="space-y-4">
+                            <form method="POST" action="{{ route('topics.infographics.store', $topic) }}" enctype="multipart/form-data" class="grid md:grid-cols-3 gap-3 bg-white border border-gray-200 rounded-xl p-4">
+                                @csrf
+                                <input name="title" class="rounded-lg border-gray-300" placeholder="Título do infográfico" required>
+                                <input name="file" type="file" accept=".pdf,.png" class="rounded-lg border-gray-300" required>
+                                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">Upload</button>
+                            </form>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead><tr class="text-left border-b"><th class="py-2">Título</th><th>Arquivo</th><th>Visualizar</th></tr></thead>
+                                    <tbody>
+                                        @forelse($infographics as $item)
+                                            <tr class="border-b"><td class="py-2">{{ $item->title }}</td><td>{{ $item->file_name }}</td><td><a href="{{ $item->file_url }}" target="_blank" class="text-blue-600">Abrir</a></td></tr>
+                                        @empty
+                                            <tr><td colspan="3" class="py-3 text-gray-500">Nenhum infográfico enviado.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <section v-show="data.activeTab === 'audios'" class="space-y-4">
+                            <form method="POST" action="{{ route('topics.audios.store', $topic) }}" enctype="multipart/form-data" class="grid md:grid-cols-4 gap-3 bg-white border border-gray-200 rounded-xl p-4">
+                                @csrf
+                                <input name="title" class="rounded-lg border-gray-300" placeholder="Título" required>
+                                <input name="description" class="rounded-lg border-gray-300" placeholder="Descrição">
+                                <input name="file" type="file" accept="audio/*" class="rounded-lg border-gray-300" required>
+                                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">Adicionar áudio (máx 5MB)</button>
+                            </form>
+
+                            @forelse($audios as $audio)
+                                <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">{{ $audio->title }}</h4>
+                                        <p class="text-sm text-gray-600">{{ $audio->description }}</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <audio controls src="{{ $audio->file_url }}" class="max-w-56"></audio>
+                                        <button type="button" @click="data.audioToEdit = '{{ $audio->id }}'" class="px-3 py-2 rounded bg-amber-100 text-amber-800 text-sm">Editar</button>
+                                        <button type="button" @click="data.audioToDelete = '{{ $audio->id }}'" class="px-3 py-2 rounded bg-red-100 text-red-700 text-sm">Excluir</button>
+                                    </div>
+                                </div>
+
+                                <div v-if="data.audioToEdit === '{{ $audio->id }}'" class="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4">
+                                    <div class="bg-white rounded-xl w-full max-w-lg p-5">
+                                        <h4 class="font-semibold mb-3">Editar áudio</h4>
+                                        <form method="POST" action="{{ route('topics.audios.update', [$topic, $audio]) }}" class="space-y-3">
+                                            @csrf @method('PUT')
+                                            <input name="title" value="{{ $audio->title }}" class="w-full rounded-lg border-gray-300" required>
+                                            <textarea name="description" class="w-full rounded-lg border-gray-300">{{ $audio->description }}</textarea>
+                                            <div class="flex justify-end gap-2"><button type="button" @click="data.audioToEdit = null" class="px-3 py-2 rounded bg-gray-200">Cancelar</button><button class="px-3 py-2 rounded bg-blue-600 text-white">Salvar</button></div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div v-if="data.audioToDelete === '{{ $audio->id }}'" class="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4">
+                                    <div class="bg-white rounded-xl w-full max-w-md p-5">
+                                        <h4 class="font-semibold">Confirmar exclusão</h4>
+                                        <p class="text-sm text-gray-600 mt-1">Deseja excluir o áudio <strong>{{ $audio->title }}</strong>?</p>
+                                        <div class="flex justify-end gap-2 mt-4">
+                                            <button type="button" @click="data.audioToDelete = null" class="px-3 py-2 rounded bg-gray-200">Cancelar</button>
+                                            <form method="POST" action="{{ route('topics.audios.destroy', [$topic, $audio]) }}">@csrf @method('DELETE')<button class="px-3 py-2 rounded bg-red-600 text-white">Excluir</button></form>
+                                        </div>
+                                    </div>
+                                </div>
                             @empty
-                                <article class="bg-white border border-gray-200 rounded-xl p-4 md:p-6">
-                                    <h3 class="text-lg font-bold text-gray-900">Resumo do tópico</h3>
-                                    <p class="text-gray-700 mt-2">{{ $topic->description ?: 'Conteúdo em breve.' }}</p>
-                                </article>
+                                <div class="text-gray-500">Nenhum áudio cadastrado.</div>
                             @endforelse
-                        </div>
-                    </section>
+                        </section>
 
-                    <section data-panel="infograficos" class="tab-panel hidden">
-                        <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                            <h3 class="text-xl font-semibold text-gray-900">Infográficos</h3>
-                            <p class="text-gray-600 mt-2">Sem arquivos por enquanto. Esta aba receberá os materiais hospedados no Cloudflare R2.</p>
-                        </div>
-                    </section>
+                        <section v-show="data.activeTab === 'videos'" class="space-y-4">
+                            <form method="POST" action="{{ route('topics.videos.store', $topic) }}" class="grid md:grid-cols-4 gap-3 bg-white border border-gray-200 rounded-xl p-4">
+                                @csrf
+                                <input name="title" class="rounded-lg border-gray-300" placeholder="Título" required>
+                                <input name="description" class="rounded-lg border-gray-300" placeholder="Descrição">
+                                <input name="video_url" type="url" class="rounded-lg border-gray-300" placeholder="https://..." required>
+                                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">Adicionar vídeo (link)</button>
+                            </form>
 
-                    <section data-panel="audios" class="tab-panel hidden">
-                        <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                            <h3 class="text-xl font-semibold text-gray-900">Áudios</h3>
-                            <p class="text-gray-600 mt-2">Sem arquivos por enquanto. Esta aba receberá os materiais hospedados no Cloudflare R2.</p>
-                        </div>
-                    </section>
+                            @forelse($videos as $video)
+                                <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between gap-3">
+                                    <div>
+                                        <h4 class="font-semibold">{{ $video->title }}</h4>
+                                        <a href="{{ $video->video_url }}" target="_blank" class="text-blue-600 text-sm">{{ $video->video_url }}</a>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <a href="{{ $video->video_url }}" target="_blank" class="px-3 py-2 rounded bg-green-100 text-green-700 text-sm">Play</a>
+                                        <button type="button" @click="data.videoToEdit = '{{ $video->id }}'" class="px-3 py-2 rounded bg-amber-100 text-amber-800 text-sm">Editar</button>
+                                        <button type="button" @click="data.videoToDelete = '{{ $video->id }}'" class="px-3 py-2 rounded bg-red-100 text-red-700 text-sm">Excluir</button>
+                                    </div>
+                                </div>
 
-                    <section data-panel="videos" class="tab-panel hidden">
-                        <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                            <h3 class="text-xl font-semibold text-gray-900">Vídeos</h3>
-                            <p class="text-gray-600 mt-2">Sem arquivos por enquanto. Esta aba receberá os materiais hospedados no Cloudflare R2.</p>
-                        </div>
-                    </section>
+                                <div v-if="data.videoToEdit === '{{ $video->id }}'" class="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4">
+                                    <div class="bg-white rounded-xl w-full max-w-lg p-5">
+                                        <h4 class="font-semibold mb-3">Editar vídeo</h4>
+                                        <form method="POST" action="{{ route('topics.videos.update', [$topic, $video]) }}" class="space-y-3">
+                                            @csrf @method('PUT')
+                                            <input name="title" value="{{ $video->title }}" class="w-full rounded-lg border-gray-300" required>
+                                            <input name="description" value="{{ $video->description }}" class="w-full rounded-lg border-gray-300">
+                                            <input name="video_url" type="url" value="{{ $video->video_url }}" class="w-full rounded-lg border-gray-300" required>
+                                            <div class="flex justify-end gap-2"><button type="button" @click="data.videoToEdit = null" class="px-3 py-2 rounded bg-gray-200">Cancelar</button><button class="px-3 py-2 rounded bg-blue-600 text-white">Salvar</button></div>
+                                        </form>
+                                    </div>
+                                </div>
 
-                    <section data-panel="questoes" class="tab-panel hidden">
-                        <div class="rounded-xl border border-gray-200 bg-white p-6 md:p-8 text-center">
-                            <h3 class="text-xl font-semibold text-gray-900">Questões de múltipla escolha</h3>
-                            <p class="text-gray-600 mt-2">Treine com questões objetivas já disponíveis para este tópico.</p>
-                            <div class="mt-6">
-                                <Link href="{{ route('quiz.start', $topic) }}"
-                                      class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all text-lg transform hover:scale-105">
-                                    🚀 Iniciar Quiz
-                                </Link>
+                                <div v-if="data.videoToDelete === '{{ $video->id }}'" class="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4">
+                                    <div class="bg-white rounded-xl w-full max-w-md p-5">
+                                        <h4 class="font-semibold">Confirmar exclusão</h4>
+                                        <div class="flex justify-end gap-2 mt-4">
+                                            <button type="button" @click="data.videoToDelete = null" class="px-3 py-2 rounded bg-gray-200">Cancelar</button>
+                                            <form method="POST" action="{{ route('topics.videos.destroy', [$topic, $video]) }}">@csrf @method('DELETE')<button class="px-3 py-2 rounded bg-red-600 text-white">Excluir</button></form>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-gray-500">Nenhum vídeo cadastrado.</div>
+                            @endforelse
+                        </section>
+
+                        <section v-show="data.activeTab === 'questoes'" class="tab-panel">
+                            <div class="rounded-xl border border-gray-200 bg-white p-6 md:p-8 text-center">
+                                <h3 class="text-xl font-semibold text-gray-900">Questões de múltipla escolha</h3>
+                                <p class="text-gray-600 mt-2">Treine com questões objetivas já disponíveis para este tópico.</p>
+                                <div class="mt-6"><Link href="{{ route('quiz.start', $topic) }}" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700">🚀 Iniciar Quiz</Link></div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
 
-                    <section data-panel="abertas-ia" class="tab-panel hidden">
-                        <div class="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
+                        <section v-show="data.activeTab === 'abertas-ia'" class="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
                             <h3 class="text-xl font-semibold text-gray-900">Questões abertas com IA</h3>
-                            <p class="text-gray-600 mt-2">Layout preparado. A correção com IA será integrada em uma próxima PR.</p>
-                            <div class="mt-4 space-y-3">
-                                <textarea rows="4" disabled class="w-full rounded-lg border-gray-300 bg-gray-50" placeholder="Digite sua resposta aberta..."></textarea>
-                                <button disabled class="w-full md:w-auto px-4 py-2 rounded-lg bg-gray-200 text-gray-500 font-semibold">Enviar para avaliação (em breve)</button>
-                            </div>
-                        </div>
-                    </section>
+                            <p class="text-gray-600 mt-2">Aba criada. Implementação será feita em próxima PR.</p>
+                        </section>
 
-                    <section data-panel="pergunte-ia" class="tab-panel hidden">
-                        <div class="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
+                        <section v-show="data.activeTab === 'pergunte-ia'" class="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
                             <h3 class="text-xl font-semibold text-gray-900">Pergunte à IA</h3>
-                            <p class="text-gray-600 mt-2">Interface de chat pronta. Integraremos o Groq em uma próxima PR.</p>
-
-                            <div class="mt-5 border border-gray-200 rounded-xl overflow-hidden">
-                                <div class="h-64 md:h-80 bg-gray-50 p-4 space-y-3 overflow-y-auto">
-                                    <div class="max-w-[85%] rounded-xl bg-blue-100 text-blue-900 p-3">Olá! Em breve eu vou responder suas dúvidas sobre este tópico.</div>
-                                    <div class="max-w-[85%] ml-auto rounded-xl bg-gray-200 text-gray-800 p-3">Perfeito, vou estudar por aqui 👋</div>
-                                </div>
-                                <div class="border-t border-gray-200 p-3 flex gap-2">
-                                    <input disabled type="text" class="flex-1 rounded-lg border-gray-300 bg-gray-100" placeholder="Digite sua pergunta..." />
-                                    <button disabled class="px-4 py-2 rounded-lg bg-gray-200 text-gray-500 font-semibold">Enviar</button>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+                            <div class="mt-4 border rounded-xl p-4 h-72 bg-gray-50">Chat placeholder pronto para integração futura.</div>
+                        </section>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const tabButtons = Array.from(document.querySelectorAll('#topic-tabs .tab-btn'));
-            const panels = Array.from(document.querySelectorAll('#topic-panels .tab-panel'));
-            const panelContainer = document.getElementById('topic-panels');
-            const tabOrder = tabButtons.map((button) => button.dataset.tab);
-            let currentTab = tabOrder[0];
-
-            const setActiveTab = (tabName) => {
-                currentTab = tabName;
-
-                tabButtons.forEach((button) => {
-                    const isActive = button.dataset.tab === tabName;
-                    button.classList.toggle('bg-white', isActive);
-                    button.classList.toggle('text-blue-700', isActive);
-                    button.classList.toggle('shadow-sm', isActive);
-                    button.classList.toggle('text-gray-600', !isActive);
-                });
-
-                panels.forEach((panel) => {
-                    panel.classList.toggle('hidden', panel.dataset.panel !== tabName);
-                });
-            };
-
-            tabButtons.forEach((button) => {
-                button.addEventListener('click', () => setActiveTab(button.dataset.tab));
-            });
-
-            let touchStartX = 0;
-            let touchEndX = 0;
-
-            panelContainer?.addEventListener('touchstart', (event) => {
-                touchStartX = event.changedTouches[0].screenX;
-            }, { passive: true });
-
-            panelContainer?.addEventListener('touchend', (event) => {
-                touchEndX = event.changedTouches[0].screenX;
-                const swipeDistance = touchStartX - touchEndX;
-
-                if (Math.abs(swipeDistance) < 50) {
-                    return;
-                }
-
-                const currentIndex = tabOrder.indexOf(currentTab);
-                if (swipeDistance > 0 && currentIndex < tabOrder.length - 1) {
-                    setActiveTab(tabOrder[currentIndex + 1]);
-                }
-
-                if (swipeDistance < 0 && currentIndex > 0) {
-                    setActiveTab(tabOrder[currentIndex - 1]);
-                }
-            }, { passive: true });
-
-            setActiveTab(currentTab);
-        });
-    </script>
+    </x-splade-data>
 </x-layout>

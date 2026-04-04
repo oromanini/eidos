@@ -27,6 +27,15 @@ Route::middleware(['auth', 'splade'])->group(function () {
     Route::get('/import', [QuizController::class, 'showImportForm'])->name('eidos.import.form');
     Route::post('/import', [QuizController::class, 'import'])->name('eidos.import');
     Route::resource('topics', TopicController::class)->only(['index', 'show']);
+
+    Route::post('/topics/{topic}/summary', [TopicController::class, 'updateSummary'])->name('topics.summary.update');
+    Route::post('/topics/{topic}/infographics', [TopicController::class, 'storeInfographic'])->name('topics.infographics.store');
+    Route::post('/topics/{topic}/audios', [TopicController::class, 'storeAudio'])->name('topics.audios.store');
+    Route::put('/topics/{topic}/audios/{audio}', [TopicController::class, 'updateAudio'])->name('topics.audios.update');
+    Route::delete('/topics/{topic}/audios/{audio}', [TopicController::class, 'destroyAudio'])->name('topics.audios.destroy');
+    Route::post('/topics/{topic}/videos', [TopicController::class, 'storeVideo'])->name('topics.videos.store');
+    Route::put('/topics/{topic}/videos/{video}', [TopicController::class, 'updateVideo'])->name('topics.videos.update');
+    Route::delete('/topics/{topic}/videos/{video}', [TopicController::class, 'destroyVideo'])->name('topics.videos.destroy');
     Route::get('/categorias/{category}', [CategoryController::class, 'show'])->name('categories.show');
     Route::get('/topics/{topic}/quiz/start', [QuizController::class, 'start'])->name('quiz.start');
     Route::get('/topics/{topic}/quiz/question/{questionNumber}', [QuizController::class, 'showQuestion'])->name('quiz.question');
