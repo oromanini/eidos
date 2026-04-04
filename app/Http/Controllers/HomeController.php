@@ -10,9 +10,12 @@ class HomeController extends Controller
     public function __invoke(): View
     {
         $categories = Category::query()
-            ->withCount('topics')
+            ->with('topics:id,category_id')
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->each(function (Category $category): void {
+                $category->setAttribute('topics_count', $category->topics->count());
+            });
 
         return view('home', [
             'categories' => $categories,
