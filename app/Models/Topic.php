@@ -14,6 +14,7 @@ class Topic extends Model
     protected $fillable = [
         'name',
         'description',
+        'category_id',
         'user_id',
     ];
 
@@ -22,6 +23,11 @@ class Topic extends Model
         return $this->hasMany(Question::class);
     }
 
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

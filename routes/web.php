@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\TopicController;
@@ -25,6 +27,7 @@ Route::middleware(['auth', 'splade'])->group(function () {
     Route::get('/import', [QuizController::class, 'showImportForm'])->name('eidos.import.form');
     Route::post('/import', [QuizController::class, 'import'])->name('eidos.import');
     Route::resource('topics', TopicController::class)->only(['index', 'show']);
+    Route::get('/categorias/{category}', [CategoryController::class, 'show'])->name('categories.show');
     Route::get('/topics/{topic}/quiz/start', [QuizController::class, 'start'])->name('quiz.start');
     Route::get('/topics/{topic}/quiz/question/{questionNumber}', [QuizController::class, 'showQuestion'])->name('quiz.question');
     Route::post('/quiz/question/{question}/answer', [QuizController::class, 'answer'])->name('quiz.answer');
@@ -37,6 +40,7 @@ Route::middleware(['auth', 'splade'])->group(function () {
         Route::get('/topics', [AdminController::class, 'topicsIndex'])->name('topics.index');
         Route::get('/topics/{topic}/edit', [AdminController::class, 'topicsEdit'])->name('topics.edit');
         Route::put('/topics/{topic}', [AdminController::class, 'topicsUpdate'])->name('topics.update');
+        Route::resource('categories', AdminCategoryController::class)->except(['show']);
     });
 
     Route::spladeWithVueBridge();

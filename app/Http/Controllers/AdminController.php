@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -44,10 +45,9 @@ class AdminController extends Controller
     public function topicsIndex(): View
     {
         $topics = Topic::query()
+            ->with(['questions', 'category'])
             ->orderByDesc('created_at')
             ->paginate(15);
-
-        $topics->load('questions');
         $topics->getCollection()->transform(function (Topic $topic) {
             $topic->setAttribute('questions_count', $topic->questions->count());
 
@@ -61,7 +61,9 @@ class AdminController extends Controller
     {
         $topic->load('questions');
 
-        return view('admin.topics.edit', compact('topic'));
+        $categories = Category::query()->orderBy('name')->get();
+
+        return view('admin.topics.edit', compact('topic', 'categories'));
     }
 
     public function topicsUpdate(Request $request, Topic $topic): RedirectResponse
@@ -69,6 +71,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'category_id' => ['required'],
             'questions' => ['required', 'array', 'min:1'],
             'questions.*.id' => ['required', 'string'],
             'questions.*.question_text' => ['required', 'string'],
@@ -82,6 +85,7 @@ class AdminController extends Controller
         $topic->update([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? '',
+            'category_id' => $validated['category_id'],
         ]);
 
         foreach ($validated['questions'] as $questionData) {

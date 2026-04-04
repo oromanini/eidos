@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\Topic;
 use App\Repositories\QuestionRepository;
 use App\Repositories\TopicRepository;
@@ -33,6 +34,11 @@ class QuizService
         $topicDescription = '';
         $csvDataLines = [];
 
+        $defaultCategory = Category::query()->firstOrCreate(
+            ['name' => 'Assuntos gerais'],
+            ['description' => 'Categoria padrão para tópicos.']
+        );
+
         foreach ($lines as $line) {
             if (str_starts_with($line, '# TEMA:')) {
                 $parts = explode(':', $line, 2);
@@ -54,7 +60,7 @@ class QuizService
         if (empty($csvDataLines)) {
             Topic::firstOrCreate(
                 ['name' => $topicName, 'user_id' => $userId],
-                ['description' => $topicDescription]
+                ['description' => $topicDescription, 'category_id' => $defaultCategory->id]
             );
             Storage::delete($filePath);
 
@@ -98,8 +104,12 @@ class QuizService
         if (! empty($questionsToCreate)) {
             $topic = Topic::firstOrCreate(
                 ['name' => $topicName, 'user_id' => $userId],
-                ['description' => $topicDescription]
+                ['description' => $topicDescription, 'category_id' => $defaultCategory->id]
             );
+
+            if (empty($topic->category_id)) {
+                $topic->update(['category_id' => $defaultCategory->id]);
+            }
 
             foreach ($questionsToCreate as $questionData) {
                 $questionData['topic_id'] = $topic->id;
