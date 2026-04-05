@@ -37,9 +37,14 @@
                         <section v-show="data.activeTab === 'resumo'" class="space-y-4" id="summary-tab">
                             <form method="POST" action="{{ route('topics.summary.update', $topic) }}" class="space-y-4 bg-blue-50 border border-blue-100 rounded-xl p-4">
                                 @csrf
-                                <h2 class="text-lg font-semibold text-gray-900">Resumo (editor interno + tabela de conteúdos)</h2>
+                                <h2 class="text-lg font-semibold text-gray-900">Resumo (editor Word/DOCX)</h2>
                                 <div class="space-y-2">
-                                    <label class="block text-sm font-medium text-gray-700">Editor de resumo</label>
+                                    <label class="block text-sm font-medium text-gray-700">Editor de resumo com importação/exportação DOCX</label>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <input id="docx-import-input" type="file" accept=".docx" class="block text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-sm file:font-semibold file:text-gray-700">
+                                        <button id="docx-import-button" type="button" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Importar DOCX</button>
+                                        <button id="docx-export-button" type="button" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Exportar DOCX</button>
+                                    </div>
                                     <div class="flex flex-wrap gap-2">
                                         <button type="button" data-editor-command="bold" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Negrito</button>
                                         <button type="button" data-editor-command="italic" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Itálico</button>
@@ -47,8 +52,9 @@
                                         <button type="button" data-editor-command="insertUnorderedList" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Lista</button>
                                         <button type="button" data-editor-command="formatBlock" data-editor-value="h2" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Título</button>
                                     </div>
-                                    <div id="summary-editor" class="min-h-[240px] rounded-lg border border-gray-300 bg-white p-3 text-gray-800" contenteditable="true">{!! old('summary_html', $knowledge->summary_html ?? '') !!}</div>
+                                    <div id="summary-editor" class="min-h-[240px] rounded-lg border border-gray-300 bg-white p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200" contenteditable="true">{!! old('summary_html', $knowledge->summary_html ?? '') !!}</div>
                                     <textarea id="summary-html-input" name="summary_html" class="hidden">{{ old('summary_html', $knowledge->summary_html ?? '') }}</textarea>
+                                    <p id="docx-feedback" class="text-xs text-gray-500"></p>
                                 </div>
                                 <input name="summary_doc_url" value="{{ old('summary_doc_url', $knowledge->summary_doc_url) }}" class="w-full rounded-lg border-gray-300" placeholder="(Opcional) URL externa de apoio (Google Docs, etc.)" />
                                 <textarea name="summary_toc_text" rows="5" class="w-full rounded-lg border-gray-300" placeholder="Formato: Título|Descrição (uma linha por seção)">@foreach($summarySections as $section){{ $section['title'] }}|{{ $section['body'] }}
@@ -231,10 +237,23 @@
             const hiddenInput = summaryTab.querySelector('#summary-html-input');
             const form = summaryTab.querySelector('form');
             const commandButtons = summaryTab.querySelectorAll('[data-editor-command]');
+            const docxImportInput = summaryTab.querySelector('#docx-import-input');
+            const docxImportButton = summaryTab.querySelector('#docx-import-button');
+            const docxExportButton = summaryTab.querySelector('#docx-export-button');
+            const docxFeedback = summaryTab.querySelector('#docx-feedback');
 
             if (!editor || !hiddenInput || !form) {
                 return;
             }
+
+            const setFeedback = (message, type = 'info') => {
+                if (!docxFeedback) {
+                    return;
+                }
+
+                docxFeedback.textContent = message;
+                docxFeedback.className = `text-xs ${type === 'error' ? 'text-red-600' : 'text-gray-500'}`;
+            };
 
             const syncEditorHtml = () => {
                 hiddenInput.value = editor.innerHTML.trim();
@@ -257,6 +276,49 @@
 
             editor.addEventListener('input', syncEditorHtml);
             form.addEventListener('submit', syncEditorHtml);
+
+            if (docxImportButton && docxImportInput) {
+                docxImportButton.addEventListener('click', async () => {
+                    const file = docxImportInput.files?.[0];
+                    if (!file) {
+                        setFeedback('Selecione um arquivo .docx para importar.', 'error');
+                        return;
+                    }
+
+                    if (!window.mammoth) {
+                        setFeedback('Falha ao carregar biblioteca de importação DOCX.', 'error');
+                        return;
+                    }
+
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const result = await window.mammoth.convertToHtml({ arrayBuffer });
+                        editor.innerHTML = result.value;
+                        syncEditorHtml();
+                        setFeedback('DOCX importado com sucesso para o editor.');
+                    } catch (error) {
+                        setFeedback('Não foi possível importar o DOCX selecionado.', 'error');
+                    }
+                });
+            }
+
+            if (docxExportButton) {
+                docxExportButton.addEventListener('click', () => {
+                    if (!window.htmlDocx || !window.saveAs) {
+                        setFeedback('Falha ao carregar biblioteca de exportação DOCX.', 'error');
+                        return;
+                    }
+
+                    const htmlContent = `<!doctype html><html><head><meta charset="utf-8"></head><body>${editor.innerHTML}</body></html>`;
+                    const blob = window.htmlDocx.asBlob(htmlContent);
+                    const topicSlug = '{{ \Illuminate\Support\Str::slug($topic->name) }}' || 'resumo';
+                    window.saveAs(blob, `${topicSlug}-resumo.docx`);
+                    setFeedback('DOCX exportado com sucesso.');
+                });
+            }
         });
     </script>
+    <script src="https://unpkg.com/mammoth@1.9.1/mammoth.browser.min.js"></script>
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </x-layout>
