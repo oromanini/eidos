@@ -34,11 +34,23 @@
                     </div>
 
                     <div class="mt-6 space-y-6">
-                        <section v-show="data.activeTab === 'resumo'" class="space-y-4">
+                        <section v-show="data.activeTab === 'resumo'" class="space-y-4" id="summary-tab">
                             <form method="POST" action="{{ route('topics.summary.update', $topic) }}" class="space-y-4 bg-blue-50 border border-blue-100 rounded-xl p-4">
                                 @csrf
-                                <h2 class="text-lg font-semibold text-gray-900">Resumo (Google Docs + tabela de conteúdos)</h2>
-                                <input name="summary_doc_url" value="{{ old('summary_doc_url', $knowledge->summary_doc_url) }}" class="w-full rounded-lg border-gray-300" placeholder="Cole a URL do Google Docs" />
+                                <h2 class="text-lg font-semibold text-gray-900">Resumo (editor interno + tabela de conteúdos)</h2>
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700">Editor de resumo</label>
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="button" data-editor-command="bold" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Negrito</button>
+                                        <button type="button" data-editor-command="italic" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Itálico</button>
+                                        <button type="button" data-editor-command="underline" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Sublinhado</button>
+                                        <button type="button" data-editor-command="insertUnorderedList" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Lista</button>
+                                        <button type="button" data-editor-command="formatBlock" data-editor-value="h2" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Título</button>
+                                    </div>
+                                    <div id="summary-editor" class="min-h-[240px] rounded-lg border border-gray-300 bg-white p-3 text-gray-800" contenteditable="true">{!! old('summary_html', $knowledge->summary_html ?? '') !!}</div>
+                                    <textarea id="summary-html-input" name="summary_html" class="hidden">{{ old('summary_html', $knowledge->summary_html ?? '') }}</textarea>
+                                </div>
+                                <input name="summary_doc_url" value="{{ old('summary_doc_url', $knowledge->summary_doc_url) }}" class="w-full rounded-lg border-gray-300" placeholder="(Opcional) URL externa de apoio (Google Docs, etc.)" />
                                 <textarea name="summary_toc_text" rows="5" class="w-full rounded-lg border-gray-300" placeholder="Formato: Título|Descrição (uma linha por seção)">@foreach($summarySections as $section){{ $section['title'] }}|{{ $section['body'] }}
 @endforeach</textarea>
                                 <textarea name="open_questions_json" rows="4" class="w-full rounded-lg border-gray-300" placeholder='Perguntas abertas (json)'>{{ old('open_questions_json', json_encode($knowledge->open_questions ?? [], JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE)) }}</textarea>
@@ -55,6 +67,12 @@
                                     @endforelse
                                 </ul>
                             </div>
+
+                            @if($knowledge->summary_html)
+                                <article class="bg-white border border-gray-200 rounded-xl p-5 prose max-w-none">
+                                    {!! $knowledge->summary_html !!}
+                                </article>
+                            @endif
 
                             @if($knowledge->summary_doc_embed_url)
                                 <iframe src="{{ $knowledge->summary_doc_embed_url }}" class="w-full h-[520px] rounded-xl border border-gray-200" loading="lazy"></iframe>
@@ -202,4 +220,43 @@
             </div>
         </div>
     </x-splade-data>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const summaryTab = document.getElementById('summary-tab');
+            if (!summaryTab) {
+                return;
+            }
+
+            const editor = summaryTab.querySelector('#summary-editor');
+            const hiddenInput = summaryTab.querySelector('#summary-html-input');
+            const form = summaryTab.querySelector('form');
+            const commandButtons = summaryTab.querySelectorAll('[data-editor-command]');
+
+            if (!editor || !hiddenInput || !form) {
+                return;
+            }
+
+            const syncEditorHtml = () => {
+                hiddenInput.value = editor.innerHTML.trim();
+            };
+
+            commandButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const command = button.getAttribute('data-editor-command');
+                    const value = button.getAttribute('data-editor-value');
+
+                    if (!command) {
+                        return;
+                    }
+
+                    document.execCommand(command, false, value ?? '');
+                    syncEditorHtml();
+                    editor.focus();
+                });
+            });
+
+            editor.addEventListener('input', syncEditorHtml);
+            form.addEventListener('submit', syncEditorHtml);
+        });
+    </script>
 </x-layout>
