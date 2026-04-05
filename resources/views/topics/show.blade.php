@@ -40,19 +40,41 @@
                                 <h2 class="text-lg font-semibold text-gray-900">Resumo (editor Word/DOCX)</h2>
                                 <div class="space-y-2">
                                     <label class="block text-sm font-medium text-gray-700">Editor de resumo com importação/exportação DOCX</label>
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <input id="docx-import-input" type="file" accept=".docx" class="block text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-sm file:font-semibold file:text-gray-700">
-                                        <button id="docx-import-button" type="button" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Importar DOCX</button>
-                                        <button id="docx-export-button" type="button" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Exportar DOCX</button>
+                                    <div class="rounded-xl border border-blue-200 bg-white shadow-sm">
+                                        <div class="flex flex-wrap items-center gap-2 border-b border-gray-200 px-3 py-2">
+                                            <input id="docx-import-input" type="file" accept=".docx" class="hidden">
+                                            <button id="docx-import-button" type="button" class="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50">Escolher DOCX</button>
+                                            <button id="docx-load-button" type="button" class="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50">Importar conteúdo</button>
+                                            <button id="docx-export-button" type="button" class="px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50">Exportar DOCX</button>
+                                            <span id="docx-file-name" class="text-xs text-gray-500">Nenhum arquivo selecionado</span>
+                                        </div>
+                                        <div class="flex flex-wrap items-center gap-2 border-b border-gray-200 px-3 py-2">
+                                            <button type="button" data-editor-command="undo" class="px-2.5 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50" title="Desfazer">↶</button>
+                                            <button type="button" data-editor-command="redo" class="px-2.5 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50" title="Refazer">↷</button>
+                                            <select id="editor-format-select" class="rounded-md border-gray-300 text-sm text-gray-700">
+                                                <option value="p">Texto normal</option>
+                                                <option value="h2">Título grande</option>
+                                                <option value="h3">Subtítulo</option>
+                                            </select>
+                                            <select id="editor-font-size-select" class="rounded-md border-gray-300 text-sm text-gray-700">
+                                                <option value="3">Tamanho 12</option>
+                                                <option value="4" selected>Tamanho 14</option>
+                                                <option value="5">Tamanho 18</option>
+                                            </select>
+                                            <button type="button" data-editor-command="bold" class="px-3 py-1.5 rounded-md border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50" title="Negrito">B</button>
+                                            <button type="button" data-editor-command="italic" class="px-3 py-1.5 rounded-md border border-gray-300 text-sm italic text-gray-700 hover:bg-gray-50" title="Itálico">I</button>
+                                            <button type="button" data-editor-command="underline" class="px-3 py-1.5 rounded-md border border-gray-300 text-sm underline text-gray-700 hover:bg-gray-50" title="Sublinhado">U</button>
+                                            <button type="button" data-editor-command="insertUnorderedList" class="px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50" title="Lista com marcadores">• Lista</button>
+                                            <button type="button" data-editor-command="insertOrderedList" class="px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50" title="Lista numerada">1. Lista</button>
+                                            <button type="button" data-editor-command="createLink" data-editor-prompt="Cole a URL do link:" class="px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50" title="Inserir link">🔗 Link</button>
+                                        </div>
+                                        <div class="bg-gray-100 p-4 md:p-6">
+                                            <div id="summary-editor"
+                                                class="mx-auto min-h-[420px] max-w-[820px] rounded border border-gray-300 bg-white p-8 text-gray-800 leading-7 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 empty:before:text-gray-400 empty:before:content-[attr(data-placeholder)]"
+                                                contenteditable="true"
+                                                data-placeholder="Comece a escrever seu resumo aqui...">{!! old('summary_html', $knowledge->summary_html ?? '') !!}</div>
+                                        </div>
                                     </div>
-                                    <div class="flex flex-wrap gap-2">
-                                        <button type="button" data-editor-command="bold" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Negrito</button>
-                                        <button type="button" data-editor-command="italic" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Itálico</button>
-                                        <button type="button" data-editor-command="underline" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Sublinhado</button>
-                                        <button type="button" data-editor-command="insertUnorderedList" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Lista</button>
-                                        <button type="button" data-editor-command="formatBlock" data-editor-value="h2" class="px-3 py-1.5 rounded-lg bg-white border border-gray-300 text-sm font-semibold text-gray-700">Título</button>
-                                    </div>
-                                    <div id="summary-editor" class="min-h-[240px] rounded-lg border border-gray-300 bg-white p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200" contenteditable="true">{!! old('summary_html', $knowledge->summary_html ?? '') !!}</div>
                                     <textarea id="summary-html-input" name="summary_html" class="hidden">{{ old('summary_html', $knowledge->summary_html ?? '') }}</textarea>
                                     <p id="docx-feedback" class="text-xs text-gray-500"></p>
                                 </div>
@@ -239,8 +261,12 @@
             const commandButtons = summaryTab.querySelectorAll('[data-editor-command]');
             const docxImportInput = summaryTab.querySelector('#docx-import-input');
             const docxImportButton = summaryTab.querySelector('#docx-import-button');
+            const docxLoadButton = summaryTab.querySelector('#docx-load-button');
             const docxExportButton = summaryTab.querySelector('#docx-export-button');
             const docxFeedback = summaryTab.querySelector('#docx-feedback');
+            const selectedFileName = summaryTab.querySelector('#docx-file-name');
+            const formatSelect = summaryTab.querySelector('#editor-format-select');
+            const fontSizeSelect = summaryTab.querySelector('#editor-font-size-select');
 
             if (!editor || !hiddenInput || !form) {
                 return;
@@ -259,26 +285,85 @@
                 hiddenInput.value = editor.innerHTML.trim();
             };
 
+            const updateToolbarState = () => {
+                commandButtons.forEach((button) => {
+                    const command = button.getAttribute('data-editor-command');
+                    if (!command || !['bold', 'italic', 'underline', 'insertUnorderedList', 'insertOrderedList'].includes(command)) {
+                        return;
+                    }
+
+                    const isActive = document.queryCommandState(command);
+                    button.classList.toggle('bg-blue-100', isActive);
+                    button.classList.toggle('border-blue-300', isActive);
+                });
+            };
+
+            const runCommand = (command, value = null) => {
+                document.execCommand(command, false, value ?? '');
+                syncEditorHtml();
+                updateToolbarState();
+                editor.focus();
+            };
+
             commandButtons.forEach((button) => {
                 button.addEventListener('click', () => {
                     const command = button.getAttribute('data-editor-command');
                     const value = button.getAttribute('data-editor-value');
+                    const promptLabel = button.getAttribute('data-editor-prompt');
 
                     if (!command) {
                         return;
                     }
 
-                    document.execCommand(command, false, value ?? '');
-                    syncEditorHtml();
-                    editor.focus();
+                    if (command === 'createLink') {
+                        const link = window.prompt(promptLabel || 'Informe a URL');
+                        if (!link) {
+                            return;
+                        }
+                        runCommand(command, link);
+                        return;
+                    }
+
+                    runCommand(command, value);
                 });
             });
 
-            editor.addEventListener('input', syncEditorHtml);
+            if (formatSelect) {
+                formatSelect.addEventListener('change', (event) => {
+                    runCommand('formatBlock', event.target.value);
+                });
+            }
+
+            if (fontSizeSelect) {
+                fontSizeSelect.addEventListener('change', (event) => {
+                    runCommand('fontSize', event.target.value);
+                });
+            }
+
+            editor.addEventListener('input', () => {
+                syncEditorHtml();
+                updateToolbarState();
+            });
+            editor.addEventListener('keyup', updateToolbarState);
+            editor.addEventListener('mouseup', updateToolbarState);
             form.addEventListener('submit', syncEditorHtml);
 
             if (docxImportButton && docxImportInput) {
-                docxImportButton.addEventListener('click', async () => {
+                docxImportButton.addEventListener('click', () => {
+                    docxImportInput.click();
+                });
+
+                docxImportInput.addEventListener('change', async () => {
+                    const file = docxImportInput.files?.[0];
+                    if (selectedFileName) {
+                        selectedFileName.textContent = file ? file.name : 'Nenhum arquivo selecionado';
+                    }
+                });
+
+            }
+
+            if (docxLoadButton && docxImportInput) {
+                docxLoadButton.addEventListener('click', async () => {
                     const file = docxImportInput.files?.[0];
                     if (!file) {
                         setFeedback('Selecione um arquivo .docx para importar.', 'error');
@@ -295,6 +380,7 @@
                         const result = await window.mammoth.convertToHtml({ arrayBuffer });
                         editor.innerHTML = result.value;
                         syncEditorHtml();
+                        updateToolbarState();
                         setFeedback('DOCX importado com sucesso para o editor.');
                     } catch (error) {
                         setFeedback('Não foi possível importar o DOCX selecionado.', 'error');
@@ -316,6 +402,8 @@
                     setFeedback('DOCX exportado com sucesso.');
                 });
             }
+
+            updateToolbarState();
         });
     </script>
     <script src="https://unpkg.com/mammoth@1.9.1/mammoth.browser.min.js"></script>
