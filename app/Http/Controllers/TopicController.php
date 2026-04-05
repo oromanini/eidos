@@ -47,19 +47,23 @@ class TopicController extends Controller
     public function updateSummary(Request $request, Topic $topic): RedirectResponse
     {
         $data = $request->validate([
-            'summary_doc_url' => ['required', 'url'],
+            'summary_doc_url' => ['nullable', 'url'],
+            'summary_html' => ['nullable', 'string'],
             'summary_toc_text' => ['nullable', 'string'],
             'open_questions_json' => ['nullable', 'string'],
         ]);
 
         $summaryToc = $this->parseSummaryToc((string) ($data['summary_toc_text'] ?? ''));
         $openQuestions = $this->parseOpenQuestions((string) ($data['open_questions_json'] ?? ''));
+        $summaryDocUrl = (string) ($data['summary_doc_url'] ?? '');
+        $summaryHtml = $this->sanitizeSummaryHtml((string) ($data['summary_html'] ?? ''));
 
         Knowledge::query()->updateOrCreate(
             ['topic_id' => $topic->id],
             [
-                'summary_doc_url' => $data['summary_doc_url'],
-                'summary_doc_embed_url' => $this->toGoogleEmbedUrl($data['summary_doc_url']),
+                'summary_doc_url' => $summaryDocUrl !== '' ? $summaryDocUrl : null,
+                'summary_doc_embed_url' => $summaryDocUrl !== '' ? $this->toGoogleEmbedUrl($summaryDocUrl) : null,
+                'summary_html' => $summaryHtml !== '' ? $summaryHtml : null,
                 'summary_toc' => $summaryToc,
                 'open_questions' => $openQuestions,
             ]
@@ -223,5 +227,15 @@ class TopicController extends Controller
         $decoded = json_decode($raw, true);
 
         return is_array($decoded) ? $decoded : [];
+    }
+
+    private function sanitizeSummaryHtml(string $html): string
+    {
+        $cleanHtml = strip_tags(
+            $html,
+            '<p><br><strong><b><em><i><u><ul><ol><li><h2><h3><h4><blockquote><a><span>'
+        );
+
+        return trim($cleanHtml);
     }
 }

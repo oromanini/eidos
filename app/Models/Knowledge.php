@@ -14,6 +14,7 @@ class Knowledge extends Model
         'topic_id',
         'summary_doc_url',
         'summary_doc_embed_url',
+        'summary_html',
         'summary_toc',
         'open_questions',
     ];
