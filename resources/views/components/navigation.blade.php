@@ -22,9 +22,9 @@
                         </x-nav-link>
 
                         @if(Auth::user()->email === 'oscar.romanini.jr@gmail.com')
-                            <div class="relative flex items-center">
-                                <button @click="data.adminOpen = !data.adminOpen"
-                                        @click.outside="data.adminOpen = false"
+                            <div class="relative flex items-center" @click.outside="data.adminOpen = false">
+                                <button type="button"
+                                        @click="data.adminOpen = !data.adminOpen"
                                         class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
                                         :class="@js(request()->routeIs('admin.*')) ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'">
                                     <span>{{ __('Admin') }}</span>
@@ -34,6 +34,7 @@
                                 </button>
 
                                 <div v-show="data.adminOpen"
+                                     @click.stop
                                      class="absolute left-0 top-full z-40 mt-2 w-52 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
                                     <Link href="{{ route('admin.users.index') }}"
                                           class="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('admin.users.*') ? 'bg-gray-100 font-semibold text-indigo-700' : '' }}">
