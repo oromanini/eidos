@@ -115,18 +115,33 @@
                                 <button class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">Upload</button>
                                 <p id="infographic-file-help" class="md:col-span-3 text-xs text-gray-500">Formatos aceitos: PDF, PNG e SVG. Tamanho máximo: 5 MB.</p>
                             </form>
-                            <div class="bg-white border border-gray-200 rounded-xl p-4 overflow-x-auto">
-                                <table class="w-full text-sm">
-                                    <thead><tr class="text-left border-b"><th class="py-2">Título</th><th>Arquivo</th><th>Visualizar</th></tr></thead>
-                                    <tbody>
-                                        @forelse($infographics as $item)
-                                            <tr class="border-b"><td class="py-2">{{ $item->title }}</td><td>{{ $item->file_name }}</td><td><a href="{{ $item->file_url }}" target="_blank" class="text-blue-600">Abrir</a></td></tr>
-                                        @empty
-                                            <tr><td colspan="3" class="py-3 text-gray-500">Nenhum infográfico enviado.</td></tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                            @forelse($infographics as $item)
+                                <article class="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+                                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900">{{ $item->title }}</h4>
+                                            <p class="text-sm text-gray-500">{{ $item->file_name }}</p>
+                                        </div>
+                                        @if($item->storage_path)
+                                            <a href="{{ route('topics.infographics.file', [$topic, $item]) }}" target="_blank" rel="noopener" class="text-sm font-semibold text-blue-600">Abrir em nova aba</a>
+                                        @endif
+                                    </div>
+
+                                    @if(!$item->storage_path)
+                                        <p class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                            Este arquivo foi enviado pelo armazenamento antigo e não está mais disponível. Reenvie-o para restaurar a visualização.
+                                        </p>
+                                    @elseif(in_array(strtolower($item->file_type), ['png', 'svg'], true))
+                                        <div class="overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-2">
+                                            <img src="{{ route('topics.infographics.file', [$topic, $item]) }}" alt="{{ $item->title }}" class="mx-auto h-auto max-h-[720px] max-w-full" loading="lazy">
+                                        </div>
+                                    @elseif(strtolower($item->file_type) === 'pdf')
+                                        <iframe src="{{ route('topics.infographics.file', [$topic, $item]) }}" title="{{ $item->title }}" class="h-[720px] w-full rounded-lg border border-gray-200" loading="lazy"></iframe>
+                                    @endif
+                                </article>
+                            @empty
+                                <div class="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-500">Nenhum infográfico enviado.</div>
+                            @endforelse
                         </section>
 
                         <section v-show="data.activeTab === 'audios'" class="space-y-4">

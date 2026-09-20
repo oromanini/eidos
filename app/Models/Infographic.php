@@ -15,6 +15,7 @@ class Infographic extends Model
         'title',
         'file_name',
         'file_url',
+        'storage_path',
         'file_type',
         'file_size',
     ];
