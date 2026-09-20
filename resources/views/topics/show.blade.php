@@ -35,7 +35,7 @@
 
                     <div class="mt-6 space-y-6">
                         <section v-show="data.activeTab === 'resumo'" class="space-y-4" id="summary-tab">
-                            <form method="POST" action="{{ route('topics.summary.update', $topic) }}" class="space-y-4 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                            <form method="POST" action="{{ route('topics.summary.update', $topic) }}" data-loading-text="Salvando resumo..." class="space-y-4 bg-blue-50 border border-blue-100 rounded-xl p-4">
                                 @csrf
                                 <h2 class="text-lg font-semibold text-gray-900">Resumo (editor Word/DOCX)</h2>
                                 <div class="space-y-2">
@@ -108,7 +108,7 @@
                         </section>
 
                         <section v-show="data.activeTab === 'infograficos'" class="space-y-4">
-                            <form method="POST" action="{{ route('topics.infographics.store', $topic) }}" enctype="multipart/form-data" class="grid md:grid-cols-3 gap-3 bg-white border border-gray-200 rounded-xl p-4">
+                            <form method="POST" action="{{ route('topics.infographics.store', $topic) }}" enctype="multipart/form-data" data-loading-text="Enviando infográfico..." class="grid md:grid-cols-3 gap-3 bg-white border border-gray-200 rounded-xl p-4">
                                 @csrf
                                 <input name="title" class="rounded-lg border-gray-300" placeholder="Título do infográfico" required>
                                 <input name="file" type="file" accept=".pdf,.png,.svg" class="rounded-lg border-gray-300" aria-describedby="infographic-file-help" required>
@@ -145,7 +145,7 @@
                         </section>
 
                         <section v-show="data.activeTab === 'audios'" class="space-y-4">
-                            <form method="POST" action="{{ route('topics.audios.store', $topic) }}" enctype="multipart/form-data" class="grid md:grid-cols-4 gap-3 bg-white border border-gray-200 rounded-xl p-4">
+                            <form method="POST" action="{{ route('topics.audios.store', $topic) }}" enctype="multipart/form-data" data-loading-text="Enviando áudio..." class="grid md:grid-cols-4 gap-3 bg-white border border-gray-200 rounded-xl p-4">
                                 @csrf
                                 <input name="title" class="rounded-lg border-gray-300" placeholder="Título" required>
                                 <input name="description" class="rounded-lg border-gray-300" placeholder="Descrição">
@@ -194,7 +194,7 @@
                         </section>
 
                         <section v-show="data.activeTab === 'videos'" class="space-y-4">
-                            <form method="POST" action="{{ route('topics.videos.store', $topic) }}" class="grid md:grid-cols-4 gap-3 bg-white border border-gray-200 rounded-xl p-4">
+                            <form method="POST" action="{{ route('topics.videos.store', $topic) }}" data-loading-text="Salvando vídeo..." class="grid md:grid-cols-4 gap-3 bg-white border border-gray-200 rounded-xl p-4">
                                 @csrf
                                 <input name="title" class="rounded-lg border-gray-300" placeholder="Título" required>
                                 <input name="description" class="rounded-lg border-gray-300" placeholder="Descrição">
@@ -246,7 +246,7 @@
                             <div class="rounded-xl border border-gray-200 bg-white p-6 md:p-8 text-center">
                                 <h3 class="text-xl font-semibold text-gray-900">Questões de múltipla escolha</h3>
                                 <p class="text-gray-600 mt-2">Treine com questões objetivas já disponíveis para este tópico.</p>
-                                <div class="mt-6"><Link href="{{ route('quiz.start', $topic) }}" class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700">🚀 Iniciar Quiz</Link></div>
+                                <div class="mt-6"><Link href="{{ route('quiz.start', $topic) }}" data-loading-text="Preparando quiz..." class="inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700">🚀 Iniciar Quiz</Link></div>
                             </div>
                         </section>
 

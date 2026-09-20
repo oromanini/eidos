@@ -54,6 +54,8 @@
     @splade
 </div>
 
+<x-action-loader />
+
 <script>
     window.addEventListener('load', function () {
         const loader = document.getElementById('page-loader');
