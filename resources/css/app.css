@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .infographic-viewport {
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+    }
+
+    .infographic-viewport.is-zoomed:active {
+        cursor: grabbing;
+    }
+
+    .infographic-viewport img {
+        -webkit-user-drag: none;
+        will-change: transform;
+    }
+}

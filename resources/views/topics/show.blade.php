@@ -132,8 +132,19 @@
                                             Este arquivo foi enviado pelo armazenamento antigo e não está mais disponível. Reenvie-o para restaurar a visualização.
                                         </p>
                                     @elseif(in_array(strtolower($item->file_type), ['png', 'svg'], true))
-                                        <div class="overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-2">
-                                            <img src="{{ route('topics.infographics.file', [$topic, $item]) }}" alt="{{ $item->title }}" class="mx-auto h-auto max-h-[720px] max-w-full" loading="lazy">
+                                        <div data-infographic-viewer class="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                                            <div class="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-lg border border-gray-200 bg-white/95 p-1 shadow-sm backdrop-blur" role="toolbar" aria-label="Controles do infográfico">
+                                                <button data-infographic-zoom-out type="button" class="flex h-9 w-9 items-center justify-center rounded-md text-xl font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
+                                                <span data-infographic-zoom-label class="min-w-[3.5rem] text-center text-xs font-semibold text-gray-600" aria-live="polite">100%</span>
+                                                <button data-infographic-zoom-in type="button" class="flex h-9 w-9 items-center justify-center rounded-md text-xl font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
+                                                <button data-infographic-reset type="button" class="h-9 rounded-md px-2 text-xs font-semibold text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Restaurar visualização">Ajustar</button>
+                                            </div>
+                                            <div data-infographic-viewport class="infographic-viewport relative h-[70vh] min-h-[420px] max-h-[720px] overflow-hidden" tabindex="0">
+                                                <img data-infographic-image src="{{ route('topics.infographics.file', [$topic, $item]) }}" alt="{{ $item->title }}" class="pointer-events-none absolute left-1/2 top-1/2 h-auto max-h-[calc(100%-1rem)] max-w-[calc(100%-1rem)] origin-center" loading="lazy" draggable="false">
+                                            </div>
+                                            <p class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-gray-900/75 px-3 py-1 text-center text-xs text-white opacity-90">
+                                                Use a roda ou os botões para ampliar · Arraste para mover
+                                            </p>
                                         </div>
                                     @elseif(strtolower($item->file_type) === 'pdf')
                                         <iframe src="{{ route('topics.infographics.file', [$topic, $item]) }}" title="{{ $item->title }}" class="h-[720px] w-full rounded-lg border border-gray-200" loading="lazy"></iframe>
