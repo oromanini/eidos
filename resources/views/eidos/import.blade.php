@@ -21,7 +21,14 @@
 
                 <x-splade-form :action="route('eidos.import')" data-loading-text="Importando perguntas..." class="space-y-8">
 
-                    {{-- COMPONENTE SIMPLIFICADO --}}
+                    <x-splade-select
+                        name="category_id"
+                        label="Categoria do novo tópico"
+                        :options="$categories->mapWithKeys(fn ($category) => [(string) $category->getKey() => $category->name])->all()"
+                        placeholder="Selecione uma categoria"
+                        choices
+                    />
+
                     <x-splade-file name="csv_file" label="Selecione seu arquivo CSV" />
 
                     <x-splade-submit

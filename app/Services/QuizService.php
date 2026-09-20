@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Repositories\CategoryRepository;
 use App\Repositories\QuestionRepository;
 use App\Repositories\TopicRepository;
 use Illuminate\Support\Facades\Storage;
@@ -16,15 +15,17 @@ class QuizService
 
     public function __construct(
         QuestionRepository $questionRepository,
-        TopicRepository $topicRepository,
-        protected CategoryRepository $categoryRepository
+        TopicRepository $topicRepository
     ) {
         $this->questionRepository = $questionRepository;
         $this->topicRepository = $topicRepository;
     }
 
-    public function importQuestionsFromCsv(string $filePath, int|string $userId): void
-    {
+    public function importQuestionsFromCsv(
+        string $filePath,
+        int|string $userId,
+        int|string $categoryId
+    ): void {
         if (! Storage::exists($filePath)) {
             return;
         }
@@ -55,12 +56,11 @@ class QuizService
         // Se não houver linhas de dados, podemos criar o tópico vazio ou simplesmente retornar.
         // Neste caso, vamos criar o tópico e depois verificar as questões.
         if (empty($csvDataLines)) {
-            $defaultCategory = $this->categoryRepository->firstOrCreateGeneral();
             $this->topicRepository->firstOrCreateForUser(
                 $topicName,
                 $userId,
                 $topicDescription,
-                $defaultCategory->getKey()
+                $categoryId
             );
             Storage::delete($filePath);
 
@@ -125,12 +125,11 @@ class QuizService
 
         // Apenas cria o tópico se houver questões válidas para ele.
         if (! empty($questionsToCreate)) {
-            $defaultCategory = $this->categoryRepository->firstOrCreateGeneral();
             $topic = $this->topicRepository->firstOrCreateForUser(
                 $topicName,
                 $userId,
                 $topicDescription,
-                $defaultCategory->getKey()
+                $categoryId
             );
 
             foreach ($questionsToCreate as $questionData) {

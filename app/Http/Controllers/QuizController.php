@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Question;
 use App\Models\QuizHistory;
 use App\Models\Topic;
+use App\Repositories\CategoryRepository;
 use App\Services\QuizHistoryService;
 use App\Services\QuizService;
 use App\Services\UserAnswerService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use ProtoneMedia\Splade\Facades\Splade;
 
@@ -25,7 +27,8 @@ class QuizController extends Controller
     public function __construct(
         QuizService $quizService,
         UserAnswerService $userAnswerService,
-        QuizHistoryService $quizHistoryService
+        QuizHistoryService $quizHistoryService,
+        private CategoryRepository $categoryRepository
     ) {
         $this->quizService = $quizService;
         $this->userAnswerService = $userAnswerService;
@@ -34,20 +37,29 @@ class QuizController extends Controller
 
     public function showImportForm(): View
     {
-        return view('eidos.import');
+        return view('eidos.import', [
+            'categories' => $this->categoryRepository->allOrdered(),
+        ]);
     }
 
     public function import(Request $request): RedirectResponse
     {
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt',
+        $data = $request->validate([
+            'category_id' => ['required', 'string'],
+            'csv_file' => ['required', 'file', 'mimes:csv,txt'],
         ]);
 
-        $filePath = $request->file('csv_file')->store('imports');
+        if (! $this->categoryRepository->existsById($data['category_id'])) {
+            throw ValidationException::withMessages([
+                'category_id' => 'Selecione uma categoria válida.',
+            ]);
+        }
+
+        $filePath = $data['csv_file']->store('imports');
 
         $userId = $request->user()->id;
 
-        $this->quizService->importQuestionsFromCsv($filePath, $userId);
+        $this->quizService->importQuestionsFromCsv($filePath, $userId, $data['category_id']);
 
         Splade::toast('O tópico foi importado com sucesso!')->autoDismiss(5);
 
