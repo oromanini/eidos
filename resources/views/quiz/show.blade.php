@@ -34,12 +34,15 @@
                         <div v-for="(optionText, key) in @js($question->options)">
                             <button
                                 @click.prevent="form.answer = key; form.submit()"
-                                :disabled="data.isAnswered"
+                                :disabled="form.processing || data.isAnswered"
+                                :aria-busy="form.processing && form.answer === key"
+                                data-loading-text="Verificando resposta..."
                                 type="button"
-                                class="w-full text-left p-4 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                class="flex w-full items-center text-left p-4 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 :class="{
                 'border-gray-300 hover:border-blue-500 hover:bg-blue-50': !data.isAnswered,
                 'cursor-not-allowed text-gray-500': data.isAnswered,
+                'cursor-wait opacity-70': form.processing,
                 'border-green-500 bg-green-100 font-bold': data.isAnswered && key === data.correctAnswer,
                 'border-red-500 bg-red-100': data.isAnswered && key === data.userAnswer && !data.wasCorrect
             }"
@@ -53,6 +56,10 @@
                 @{{ key.toUpperCase() }}
             </span>
                                 @{{ optionText }}
+                                <svg v-if="form.processing && form.answer === key" class="ml-auto h-5 w-5 animate-spin text-blue-600 motion-reduce:animate-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
                             </button>
                         </div>
                     </x-splade-form>
@@ -66,11 +73,12 @@
 
                         @if($questionNumber < $totalQuestions)
                             <Link href="{{ route('quiz.question', ['topic' => $topic, 'questionNumber' => $questionNumber + 1]) }}"
+                                  data-loading-text="Carregando próxima pergunta..."
                                   class="mt-4 inline-block bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-transform hover:scale-105">
                             Continuar
                             </Link>
                         @else
-                            <Link href="{{ route('quiz.finish', ['topic' => $topic]) }}" class="mt-4 inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-110 animate-pulse">
+                            <Link href="{{ route('quiz.finish', ['topic' => $topic]) }}" data-loading-text="Calculando resultado..." class="mt-4 inline-block bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-110 animate-pulse">
                             🏆 Ver Resultado!
                             </Link>
                         @endif

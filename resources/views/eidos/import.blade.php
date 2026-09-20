@@ -19,7 +19,7 @@
                     </a>
                 </div>
 
-                <x-splade-form :action="route('eidos.import')" class="space-y-8">
+                <x-splade-form :action="route('eidos.import')" data-loading-text="Importando perguntas..." class="space-y-8">
 
                     {{-- COMPONENTE SIMPLIFICADO --}}
                     <x-splade-file name="csv_file" label="Selecione seu arquivo CSV" />
