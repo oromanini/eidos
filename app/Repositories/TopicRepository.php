@@ -23,7 +23,7 @@ class TopicRepository
             ['description' => $description, 'category_id' => $categoryId]
         );
 
-        if (blank($topic->category_id)) {
+        if ((string) $topic->category_id !== (string) $categoryId) {
             $topic->update(['category_id' => $categoryId]);
         }
 

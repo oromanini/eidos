@@ -2,10 +2,8 @@
 
 namespace Tests\Unit\Services;
 
-use App\Models\Category;
 use App\Models\Question;
 use App\Models\Topic;
-use App\Repositories\CategoryRepository;
 use App\Repositories\QuestionRepository;
 use App\Repositories\TopicRepository;
 use App\Services\QuizService;
@@ -20,8 +18,6 @@ class QuizServiceTest extends TestCase
 
     private TopicRepository $topicRepository;
 
-    private CategoryRepository $categoryRepository;
-
     private QuizService $service;
 
     protected function setUp(): void
@@ -31,11 +27,9 @@ class QuizServiceTest extends TestCase
         Storage::fake('local');
         $this->questionRepository = Mockery::mock(QuestionRepository::class);
         $this->topicRepository = Mockery::mock(TopicRepository::class);
-        $this->categoryRepository = Mockery::mock(CategoryRepository::class);
         $this->service = new QuizService(
             $this->questionRepository,
-            $this->topicRepository,
-            $this->categoryRepository
+            $this->topicRepository
         );
     }
 
@@ -47,11 +41,10 @@ class QuizServiceTest extends TestCase
 
     public function test_it_returns_without_writing_when_the_file_does_not_exist(): void
     {
-        $this->categoryRepository->shouldNotReceive('firstOrCreateGeneral');
         $this->topicRepository->shouldNotReceive('firstOrCreateForUser');
         $this->questionRepository->shouldNotReceive('create');
 
-        $this->service->importQuestionsFromCsv('imports/missing.csv', 'user-1');
+        $this->service->importQuestionsFromCsv('imports/missing.csv', 'user-1', 'category-7');
 
         $this->assertTrue(true);
     }
@@ -67,17 +60,12 @@ class QuizServiceTest extends TestCase
             'Pergunta 2,A2,B2,C2,D2,d',
         ]));
 
-        $category = $this->modelWithKey(Category::class, 'category-1');
         $topic = $this->modelWithKey(Topic::class, 'topic-1');
 
-        $this->categoryRepository
-            ->shouldReceive('firstOrCreateGeneral')
-            ->once()
-            ->andReturn($category);
         $this->topicRepository
             ->shouldReceive('firstOrCreateForUser')
             ->once()
-            ->with('Arquitetura de Software', 'user-1', 'Conceitos fundamentais', 'category-1')
+            ->with('Arquitetura de Software', 'user-1', 'Conceitos fundamentais', 'category-7')
             ->andReturn($topic);
         $this->questionRepository
             ->shouldReceive('create')
@@ -100,7 +88,7 @@ class QuizServiceTest extends TestCase
             ])
             ->andReturn(new Question);
 
-        $this->service->importQuestionsFromCsv($path, 'user-1');
+        $this->service->importQuestionsFromCsv($path, 'user-1', 'category-7');
 
         Storage::assertMissing($path);
     }
@@ -111,18 +99,16 @@ class QuizServiceTest extends TestCase
         $path = 'imports/empty.csv';
         Storage::put($path, '');
 
-        $category = $this->modelWithKey(Category::class, 'category-1');
         $topic = $this->modelWithKey(Topic::class, 'topic-1');
 
-        $this->categoryRepository->shouldReceive('firstOrCreateGeneral')->once()->andReturn($category);
         $this->topicRepository
             ->shouldReceive('firstOrCreateForUser')
             ->once()
-            ->with('Tópico importado em 20/09/2026', 'user-1', '', 'category-1')
+            ->with('Tópico importado em 20/09/2026', 'user-1', '', 'category-7')
             ->andReturn($topic);
         $this->questionRepository->shouldNotReceive('create');
 
-        $this->service->importQuestionsFromCsv($path, 'user-1');
+        $this->service->importQuestionsFromCsv($path, 'user-1', 'category-7');
 
         Storage::assertMissing($path);
     }
@@ -137,11 +123,10 @@ class QuizServiceTest extends TestCase
             'Resposta inválida,A,B,C,D,e',
         ]));
 
-        $this->categoryRepository->shouldNotReceive('firstOrCreateGeneral');
         $this->topicRepository->shouldNotReceive('firstOrCreateForUser');
         $this->questionRepository->shouldNotReceive('create');
 
-        $this->service->importQuestionsFromCsv($path, 'user-1');
+        $this->service->importQuestionsFromCsv($path, 'user-1', 'category-7');
 
         Storage::assertMissing($path);
     }
@@ -151,11 +136,10 @@ class QuizServiceTest extends TestCase
         $path = 'imports/wrong-headers.csv';
         Storage::put($path, "question,answer\nPergunta,A");
 
-        $this->categoryRepository->shouldNotReceive('firstOrCreateGeneral');
         $this->topicRepository->shouldNotReceive('firstOrCreateForUser');
         $this->questionRepository->shouldNotReceive('create');
 
-        $this->service->importQuestionsFromCsv($path, 'user-1');
+        $this->service->importQuestionsFromCsv($path, 'user-1', 'category-7');
 
         Storage::assertMissing($path);
     }
