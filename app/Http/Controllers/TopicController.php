@@ -7,6 +7,7 @@ use App\Models\Infographic;
 use App\Models\Knowledge;
 use App\Models\Topic;
 use App\Models\Video;
+use App\Repositories\InfographicRepository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,8 @@ use Illuminate\View\View;
 
 class TopicController extends Controller
 {
+    public function __construct(protected InfographicRepository $infographicRepository) {}
+
     public function index(): View
     {
         return view('topics.index');
@@ -78,12 +81,12 @@ class TopicController extends Controller
     {
         $data = $request->validate([
             'title' => ['required', 'string', 'max:120'],
-            'file' => ['required', 'file', 'mimes:pdf,png', 'max:5120'],
+            'file' => ['required', 'file', 'mimes:pdf,png,svg', 'max:5120'],
         ]);
 
         $storedPath = $data['file']->store("topic-assets/{$topic->id}/infographics", 'public');
 
-        Infographic::query()->create([
+        $this->infographicRepository->create([
             'topic_id' => $topic->id,
             'title' => $data['title'],
             'file_name' => $data['file']->getClientOriginalName(),

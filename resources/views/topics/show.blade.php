@@ -111,8 +111,9 @@
                             <form method="POST" action="{{ route('topics.infographics.store', $topic) }}" enctype="multipart/form-data" class="grid md:grid-cols-3 gap-3 bg-white border border-gray-200 rounded-xl p-4">
                                 @csrf
                                 <input name="title" class="rounded-lg border-gray-300" placeholder="Título do infográfico" required>
-                                <input name="file" type="file" accept=".pdf,.png" class="rounded-lg border-gray-300" required>
+                                <input name="file" type="file" accept=".pdf,.png,.svg" class="rounded-lg border-gray-300" aria-describedby="infographic-file-help" required>
                                 <button class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">Upload</button>
+                                <p id="infographic-file-help" class="md:col-span-3 text-xs text-gray-500">Formatos aceitos: PDF, PNG e SVG. Tamanho máximo: 5 MB.</p>
                             </form>
                             <div class="bg-white border border-gray-200 rounded-xl p-4 overflow-x-auto">
                                 <table class="w-full text-sm">
