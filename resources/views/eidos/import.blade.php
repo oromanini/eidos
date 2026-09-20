@@ -7,6 +7,18 @@
                     <p class="text-gray-500 mt-2">Envie um arquivo no formato CSV para adicionar novos tópicos e perguntas.</p>
                 </div>
 
+                <div class="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-5">
+                    <h2 class="font-semibold text-blue-950">Precisa de um arquivo de exemplo?</h2>
+                    <p class="mt-1 text-sm leading-6 text-blue-800">
+                        Baixe o modelo com os cabeçalhos aceitos pelo EIDOS, preencha suas perguntas e importe o arquivo nesta página.
+                    </p>
+                    <a href="{{ asset('downloads/modelo-importacao-eidos.csv') }}"
+                       download="modelo-importacao-eidos.csv"
+                       class="mt-4 inline-flex items-center rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
+                        ↓ Baixar modelo CSV
+                    </a>
+                </div>
+
                 <x-splade-form :action="route('eidos.import')" class="space-y-8">
 
                     {{-- COMPONENTE SIMPLIFICADO --}}

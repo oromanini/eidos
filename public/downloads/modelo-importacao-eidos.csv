@@ -1,0 +1,5 @@
+# TEMA: Arquitetura de Software
+# DESCRIÇÃO: Perguntas de exemplo para demonstrar o formato de importação do EIDOS.
+pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,resposta_correta
+"Qual a função principal de um Load Balancer em uma arquitetura de escala horizontal?","Aumentar a capacidade de processamento de um único servidor físico.","Distribuir o tráfego entre múltiplas instâncias da aplicação.","Armazenar os arquivos de sessão dos usuários.","Executar o código PHP antes que ele chegue ao servidor web.",b
+"O que caracteriza o algoritmo Round Robin em um balanceador de carga?","Direciona o tráfego apenas para o servidor com menor uso de CPU.","Mantém o usuário sempre no mesmo servidor.","Distribui as requisições de forma circular entre os servidores.","Bloqueia automaticamente requisições de IPs suspeitos.",c
