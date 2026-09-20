@@ -12,6 +12,24 @@ class TopicRepository
         return Topic::create($data);
     }
 
+    public function firstOrCreateForUser(
+        string $name,
+        int|string $userId,
+        string $description,
+        int|string $categoryId
+    ): Topic {
+        $topic = Topic::firstOrCreate(
+            ['name' => $name, 'user_id' => $userId],
+            ['description' => $description, 'category_id' => $categoryId]
+        );
+
+        if (blank($topic->category_id)) {
+            $topic->update(['category_id' => $categoryId]);
+        }
+
+        return $topic;
+    }
+
     public function createOrUpdate(string $name, ?string $description): Topic
     {
         return Topic::updateOrCreate(

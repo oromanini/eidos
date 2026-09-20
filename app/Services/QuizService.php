@@ -2,8 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Category;
-use App\Models\Topic;
+use App\Repositories\CategoryRepository;
 use App\Repositories\QuestionRepository;
 use App\Repositories\TopicRepository;
 use Illuminate\Support\Facades\Storage;
@@ -15,8 +14,11 @@ class QuizService
 
     protected TopicRepository $topicRepository;
 
-    public function __construct(QuestionRepository $questionRepository, TopicRepository $topicRepository)
-    {
+    public function __construct(
+        QuestionRepository $questionRepository,
+        TopicRepository $topicRepository,
+        protected CategoryRepository $categoryRepository
+    ) {
         $this->questionRepository = $questionRepository;
         $this->topicRepository = $topicRepository;
     }
@@ -28,16 +30,11 @@ class QuizService
         }
 
         $fileContent = Storage::get($filePath);
-        $lines = explode(PHP_EOL, $fileContent);
+        $lines = preg_split('/\R/', $fileContent) ?: [];
 
         $topicName = 'Tópico importado em '.now()->format('d/m/Y');
         $topicDescription = '';
         $csvDataLines = [];
-
-        $defaultCategory = Category::query()->firstOrCreate(
-            ['name' => 'Assuntos gerais'],
-            ['description' => 'Categoria padrão para tópicos.']
-        );
 
         foreach ($lines as $line) {
             if (str_starts_with($line, '# TEMA:')) {
@@ -58,9 +55,12 @@ class QuizService
         // Se não houver linhas de dados, podemos criar o tópico vazio ou simplesmente retornar.
         // Neste caso, vamos criar o tópico e depois verificar as questões.
         if (empty($csvDataLines)) {
-            Topic::firstOrCreate(
-                ['name' => $topicName, 'user_id' => $userId],
-                ['description' => $topicDescription, 'category_id' => $defaultCategory->id]
+            $defaultCategory = $this->categoryRepository->firstOrCreateGeneral();
+            $this->topicRepository->firstOrCreateForUser(
+                $topicName,
+                $userId,
+                $topicDescription,
+                $defaultCategory->getKey()
             );
             Storage::delete($filePath);
 
@@ -70,6 +70,22 @@ class QuizService
         $csvContent = implode(PHP_EOL, $csvDataLines);
         $csv = Reader::createFromString($csvContent);
         $csv->setHeaderOffset(0);
+
+        $requiredHeaders = [
+            'pergunta',
+            'alternativa_a',
+            'alternativa_b',
+            'alternativa_c',
+            'alternativa_d',
+            'resposta_correta',
+        ];
+
+        if (array_diff($requiredHeaders, $csv->getHeader())) {
+            Storage::delete($filePath);
+
+            return;
+        }
+
         $records = $csv->getRecords();
 
         $questionsToCreate = [];
@@ -83,7 +99,14 @@ class QuizService
             $correctAnswer = strtolower(trim($record['resposta_correta']));
 
             // Pula a linha se qualquer campo essencial estiver faltando.
-            if (empty($questionText) || empty($altA) || empty($altB) || empty($altC) || empty($altD) || empty($correctAnswer)) {
+            if (
+                empty($questionText)
+                || empty($altA)
+                || empty($altB)
+                || empty($altC)
+                || empty($altD)
+                || ! in_array($correctAnswer, ['a', 'b', 'c', 'd'], true)
+            ) {
                 continue;
             }
             // ---> FIM DA VALIDAÇÃO MELHORADA <---
@@ -102,17 +125,16 @@ class QuizService
 
         // Apenas cria o tópico se houver questões válidas para ele.
         if (! empty($questionsToCreate)) {
-            $topic = Topic::firstOrCreate(
-                ['name' => $topicName, 'user_id' => $userId],
-                ['description' => $topicDescription, 'category_id' => $defaultCategory->id]
+            $defaultCategory = $this->categoryRepository->firstOrCreateGeneral();
+            $topic = $this->topicRepository->firstOrCreateForUser(
+                $topicName,
+                $userId,
+                $topicDescription,
+                $defaultCategory->getKey()
             );
 
-            if (empty($topic->category_id)) {
-                $topic->update(['category_id' => $defaultCategory->id]);
-            }
-
             foreach ($questionsToCreate as $questionData) {
-                $questionData['topic_id'] = $topic->id;
+                $questionData['topic_id'] = $topic->getKey();
                 $this->questionRepository->create($questionData);
             }
         }
