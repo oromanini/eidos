@@ -16,7 +16,7 @@ class TopicControllerTest extends TestCase
 {
     public function test_store_infographic_accepts_an_svg_file(): void
     {
-        Storage::fake('public');
+        Storage::fake('infographics');
 
         $topic = new Topic;
         $topic->setAttribute('id', 'topic-1');
@@ -41,7 +41,8 @@ class TopicControllerTest extends TestCase
                     && $data['title'] === 'Arquitetura'
                     && $data['file_name'] === 'arquitetura.svg'
                     && $data['file_type'] === 'svg'
-                    && str_ends_with($data['file_url'], '.svg')
+                    && str_starts_with($data['storage_path'], 'topics/topic-1/')
+                    && str_ends_with($data['storage_path'], '.svg')
                     && $data['file_size'] > 0;
             }))
             ->andReturn(new Infographic);
@@ -53,8 +54,30 @@ class TopicControllerTest extends TestCase
             'tab' => 'infograficos',
         ]), $response->getTargetUrl());
 
-        $storedFiles = Storage::disk('public')->allFiles('topic-assets/topic-1/infographics');
+        $storedFiles = Storage::disk('infographics')->allFiles('topics/topic-1');
         $this->assertCount(1, $storedFiles);
         $this->assertStringEndsWith('.svg', $storedFiles[0]);
+    }
+
+    public function test_show_infographic_file_returns_the_stored_svg_inline(): void
+    {
+        Storage::fake('infographics');
+        Storage::disk('infographics')->put('topics/topic-1/infographic.svg', '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+
+        $topic = new Topic;
+        $topic->setAttribute('id', 'topic-1');
+        $infographic = new Infographic([
+            'topic_id' => 'topic-1',
+            'file_name' => 'infographic.svg',
+            'file_type' => 'svg',
+            'storage_path' => 'topics/topic-1/infographic.svg',
+        ]);
+
+        $response = (new TopicController(Mockery::mock(InfographicRepository::class)))
+            ->showInfographicFile($topic, $infographic);
+
+        $this->assertSame('image/svg+xml', $response->headers->get('Content-Type'));
+        $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
+        $this->assertStringContainsString('inline', $response->headers->get('Content-Disposition'));
     }
 }

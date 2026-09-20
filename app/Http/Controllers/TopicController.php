@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TopicController extends Controller
 {
@@ -84,18 +86,47 @@ class TopicController extends Controller
             'file' => ['required', 'file', 'mimes:pdf,png,svg', 'max:5120'],
         ]);
 
-        $storedPath = $data['file']->store("topic-assets/{$topic->id}/infographics", 'public');
+        $extension = strtolower($data['file']->getClientOriginalExtension());
+        $storedPath = Storage::disk('infographics')->putFileAs(
+            "topics/{$topic->id}",
+            $data['file'],
+            Str::uuid().'.'.$extension,
+        );
 
         $this->infographicRepository->create([
             'topic_id' => $topic->id,
             'title' => $data['title'],
             'file_name' => $data['file']->getClientOriginalName(),
-            'file_url' => Storage::disk('public')->url($storedPath),
-            'file_type' => $data['file']->getClientOriginalExtension(),
+            'storage_path' => $storedPath,
+            'file_type' => $extension,
             'file_size' => $data['file']->getSize(),
         ]);
 
         return redirect()->route('topics.show', ['topic' => $topic, 'tab' => 'infograficos']);
+    }
+
+    public function showInfographicFile(Topic $topic, Infographic $infographic): StreamedResponse
+    {
+        abort_if((string) $infographic->topic_id !== (string) $topic->id, 404);
+        abort_unless($infographic->storage_path, 404);
+
+        $disk = Storage::disk('infographics');
+
+        abort_unless($disk->exists($infographic->storage_path), 404);
+
+        return $disk->response(
+            $infographic->storage_path,
+            $infographic->file_name,
+            [
+                'Content-Type' => $this->infographicContentType($infographic->file_type),
+                'Content-Disposition' => HeaderUtils::makeDisposition(
+                    HeaderUtils::DISPOSITION_INLINE,
+                    $infographic->file_name,
+                ),
+                'Content-Security-Policy' => "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox",
+                'X-Content-Type-Options' => 'nosniff',
+            ],
+        );
     }
 
     public function storeAudio(Request $request, Topic $topic): RedirectResponse
@@ -240,5 +271,15 @@ class TopicController extends Controller
         );
 
         return trim($cleanHtml);
+    }
+
+    private function infographicContentType(string $fileType): string
+    {
+        return match (strtolower($fileType)) {
+            'pdf' => 'application/pdf',
+            'png' => 'image/png',
+            'svg' => 'image/svg+xml',
+            default => 'application/octet-stream',
+        };
     }
 }
