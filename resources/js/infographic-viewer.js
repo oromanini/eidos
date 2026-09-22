@@ -44,6 +44,14 @@ export function createInfographicViewportState() {
     };
 }
 
+export function createInfographicImagePresentation(baseWidth, baseHeight, state) {
+    return {
+        width: baseWidth * state.scale,
+        height: baseHeight * state.scale,
+        transform: `translate(-50%, -50%) translate(${state.panX}px, ${state.panY}px)`,
+    };
+}
+
 function initialiseViewer(viewer) {
     if (viewer.dataset.infographicViewerReady === "true") {
         return;
@@ -63,16 +71,43 @@ function initialiseViewer(viewer) {
     const pointers = new Map();
     let lastPointer = null;
     let pinchDistance = null;
+    let baseWidth = 0;
+    let baseHeight = 0;
 
     const render = () => {
-        const { scale, panX, panY } = state.snapshot();
-        image.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) scale(${scale})`;
+        const snapshot = state.snapshot();
+        const { scale } = snapshot;
+
+        if (baseWidth > 0 && baseHeight > 0) {
+            const presentation = createInfographicImagePresentation(baseWidth, baseHeight, snapshot);
+
+            image.style.width = `${presentation.width}px`;
+            image.style.height = `${presentation.height}px`;
+            image.style.maxWidth = "none";
+            image.style.maxHeight = "none";
+            image.style.transform = presentation.transform;
+        }
+
         viewport.classList.toggle("is-zoomed", scale > MIN_SCALE);
         viewport.setAttribute("aria-label", `Visualizador do infográfico, zoom em ${Math.round(scale * 100)}%`);
 
         if (zoomLabel) {
             zoomLabel.textContent = `${Math.round(scale * 100)}%`;
         }
+    };
+
+    const measureBaseSize = () => {
+        image.style.width = "";
+        image.style.height = "";
+        image.style.maxWidth = "";
+        image.style.maxHeight = "";
+        image.style.transform = "translate(-50%, -50%)";
+
+        const bounds = image.getBoundingClientRect();
+        baseWidth = bounds.width;
+        baseHeight = bounds.height;
+
+        render();
     };
 
     const viewportAnchor = (clientX, clientY) => {
@@ -98,7 +133,7 @@ function initialiseViewer(viewer) {
     viewer.querySelector("[data-infographic-zoom-out]")?.addEventListener("click", () => zoomBy(-SCALE_STEP));
     viewer.querySelector("[data-infographic-reset]")?.addEventListener("click", () => {
         state.reset();
-        render();
+        measureBaseSize();
     });
 
     viewport.addEventListener("wheel", (event) => {
@@ -111,7 +146,7 @@ function initialiseViewer(viewer) {
 
         if (scale > MIN_SCALE) {
             state.reset();
-            render();
+            measureBaseSize();
             return;
         }
 
@@ -173,10 +208,25 @@ function initialiseViewer(viewer) {
     viewport.addEventListener("pointercancel", releasePointer);
     viewport.addEventListener("lostpointercapture", releasePointer);
 
-    render();
+    image.addEventListener("load", measureBaseSize);
+
+    if (image.complete) {
+        measureBaseSize();
+    } else {
+        render();
+    }
+
+    if (typeof ResizeObserver !== "undefined") {
+        const resizeObserver = new ResizeObserver(() => {
+            if (state.snapshot().scale === MIN_SCALE && viewport.clientWidth > 0 && viewport.clientHeight > 0) {
+                measureBaseSize();
+            }
+        });
+
+        resizeObserver.observe(viewport);
+    }
 }
 
 export function initInfographicViewers(documentObject = document) {
     documentObject.querySelectorAll("[data-infographic-viewer]").forEach(initialiseViewer);
 }
-
