@@ -15,6 +15,5 @@
 
     .infographic-viewport img {
         -webkit-user-drag: none;
-        will-change: transform;
     }
 }
